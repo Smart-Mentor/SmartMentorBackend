@@ -1,0 +1,6 @@
+@SmartMentorApi_HostAddress = http://localhost:5051
+
+GET {{SmartMentorApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
