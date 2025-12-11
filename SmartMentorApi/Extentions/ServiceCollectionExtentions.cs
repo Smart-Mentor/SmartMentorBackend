@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
 using SmartMentor.Persistence.Data;
+using SmartMentor.Persistence.Identity;
 
 namespace SmartMentorApi.Extentions
 {
@@ -72,6 +74,37 @@ namespace SmartMentorApi.Extentions
                     app.MapScalarApiReference();
                 }
             }
+        public static IServiceCollection AddIdenttiyExtention(this IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false; 
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 4;
+                options.Password.RequiredUniqueChars = 1;
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+
+                // Sign-in settings
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedAccount = false;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = System.TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            return services;   
         }
+
+        }
+
     }
 
