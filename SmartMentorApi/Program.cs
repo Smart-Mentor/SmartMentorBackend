@@ -1,12 +1,14 @@
 
 using Serilog;
+using SmartMentor.Persistence.Identity;
 using SmartMentorApi.Extentions;
+using System.Threading.Tasks;
 
 namespace SmartMentorApi
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
 
             try
@@ -15,11 +17,12 @@ namespace SmartMentorApi
 
                 // Add services to the container (this configures Serilog properly)
                 builder.AddServices();
+                
                 var app = builder.Build();
-
+                await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
-
+                
                 app.UseHttpsRedirection();
 
                 app.UseAuthorization();

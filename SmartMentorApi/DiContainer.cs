@@ -1,4 +1,5 @@
-﻿using SmartMentorApi.Extentions;
+﻿using SmartMentor.Persistence.Data;
+using SmartMentorApi.Extentions;
 
 namespace SmartMentorApi
 {
@@ -15,6 +16,10 @@ namespace SmartMentorApi
             services.AddControllers();
             services.AddDatabase(configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException("The Connectionstring is Null or Empty "));
+            services.AddIdenttiyExtention();
+            services.AddTransient<DataSeeder>();
+            
+            
             return builder;
         }
 
