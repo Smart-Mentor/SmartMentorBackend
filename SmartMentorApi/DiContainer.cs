@@ -18,7 +18,7 @@ namespace SmartMentorApi
                 ?? throw new ArgumentNullException("The Connectionstring is Null or Empty "));
             services.AddIdenttiyExtention();
             services.AddTransient<DataSeeder>();
-            
+            services.AddJwtAuthentications(configuration);
             
             return builder;
         }
