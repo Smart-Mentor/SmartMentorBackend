@@ -1,4 +1,5 @@
-﻿using SmartMentor.Persistence.Data;
+﻿using SmartMentor.Domain.Entiies;
+using SmartMentor.Persistence.Data;
 using SmartMentorApi.Extentions;
 
 namespace SmartMentorApi
@@ -12,13 +13,18 @@ namespace SmartMentorApi
             var configuration = builder.Configuration;
             var host = builder.Host;
             host.AddSerilog();
+            
+            // Bind JwtSettings to configuration
+            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+            
             services.AddOpenApidocumentation();
             services.AddControllers();
             services.AddDatabase(configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException("The Connectionstring is Null or Empty "));
             services.AddIdenttiyExtention();
             services.AddTransient<DataSeeder>();
-            services.AddJwtAuthentications(configuration);
+            services.ConfigureJwt(configuration);
+            services.RegisterServices();
             
             return builder;
         }

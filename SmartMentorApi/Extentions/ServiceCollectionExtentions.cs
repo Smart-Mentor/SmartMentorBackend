@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using SmartMentor.Abstraction.Services.AuthenticationService;
+using SmartMentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Persistence.Data;
 using SmartMentor.Persistence.Identity;
 using System.Text;
@@ -13,6 +15,14 @@ namespace SmartMentorApi.Extentions
 {
     public static class ServiceCollectionExtentions
     {
+        public static IServiceCollection RegisterServices(this IServiceCollection services)
+        {
+            // Register application services here
+            services.AddScoped<IAuthService , AuthService>();
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
+            
+            return services;
+        }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)
         {
             services.AddOpenApi(options =>
@@ -93,7 +103,7 @@ namespace SmartMentorApi.Extentions
                 options.User.RequireUniqueEmail = true;
 
                 // Sign-in settings
-                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedEmail = false;
                 options.SignIn.RequireConfirmedAccount = false;
 
                 // Lockout settings
@@ -106,7 +116,7 @@ namespace SmartMentorApi.Extentions
 
             return services;
         }
-        public static IServiceCollection AddJwtAuthentications(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection ConfigureJwt(this IServiceCollection services,IConfiguration configuration)
         {
 
             var jwtKey = configuration["JwtSettings:Secret"];

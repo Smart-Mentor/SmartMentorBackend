@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
+VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMentorApi", "SmartMentorApi.csproj", "{8EB4CB65-1AAC-4201-B603-97B446C6A736}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMentor.Abstraction", "..\SmartMentor.Abstraction\SmartMentor.Abstraction.csproj", "{587FFCC9-A13F-4072-BB00-3E79D6E40D83}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMentor.Application", "..\SmartMentor.Application\SmartMentor.Application.csproj", "{DFE5EA1E-4CEB-4A6F-88E8-6B426D9D959A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMentor.Application.Abstraction", "..\SmartMentor.Application.Abstraction\SmartMentor.Application.Abstraction.csproj", "{F9AC049B-A7EB-4D2C-A779-CE77857698D6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMentor.Domain", "..\SmartMentor.Domain\SmartMentor.Domain.csproj", "{57513985-6F14-4296-B236-A78F2B3B389A}"
 EndProject
@@ -37,10 +35,6 @@ Global
 		{DFE5EA1E-4CEB-4A6F-88E8-6B426D9D959A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFE5EA1E-4CEB-4A6F-88E8-6B426D9D959A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFE5EA1E-4CEB-4A6F-88E8-6B426D9D959A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F9AC049B-A7EB-4D2C-A779-CE77857698D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F9AC049B-A7EB-4D2C-A779-CE77857698D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F9AC049B-A7EB-4D2C-A779-CE77857698D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F9AC049B-A7EB-4D2C-A779-CE77857698D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57513985-6F14-4296-B236-A78F2B3B389A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57513985-6F14-4296-B236-A78F2B3B389A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57513985-6F14-4296-B236-A78F2B3B389A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,7 +50,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{587FFCC9-A13F-4072-BB00-3E79D6E40D83} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{DFE5EA1E-4CEB-4A6F-88E8-6B426D9D959A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{F9AC049B-A7EB-4D2C-A779-CE77857698D6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{57513985-6F14-4296-B236-A78F2B3B389A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{CA8BF7BB-B678-40F4-B64C-E3DDA4A09F34} = {06EB5009-FF4C-4C2D-B171-F2125A856235}
 	EndGlobalSection
