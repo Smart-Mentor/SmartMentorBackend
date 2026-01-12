@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SmartMentor.Abstraction.Dto;
@@ -19,12 +20,16 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IOptions<JwtSettings> _jwtSettings;
+        private readonly ILogger<JwtTokenService> _logger;
 
-        public JwtTokenService(UserManager<ApplicationUser> userManager,IOptions<JwtSettings> jwtsetting)
+        public JwtTokenService(UserManager<ApplicationUser> userManager,IOptions<JwtSettings> jwtsetting,ILogger<JwtTokenService> logger)
         {
             _userManager = userManager;
             _jwtSettings = jwtsetting;
+            _logger = logger;
         }
+
+       
 
         public async Task<string> GenerateTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
@@ -35,6 +40,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             user)
         {
             var userClaims = await _userManager.GetClaimsAsync(user);
+            _logger.LogDebug("User claims retrieved: {ClaimsCount} for user: {UserId}", userClaims.Count, user.Id);
             var roles = await _userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
@@ -42,9 +48,10 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 // Use Jti for unique ID instead of Sub
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        
+                new Claim(JwtRegisteredClaimNames.Sub, user.FirstName+" "+ user.LastName),
                 // Single NameIdentifier with USER ID
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                
 
             };
 
@@ -67,4 +74,5 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         }
 
     }
+    
 }
