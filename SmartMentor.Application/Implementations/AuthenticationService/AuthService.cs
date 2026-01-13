@@ -93,6 +93,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 PhoneNumber=request.PhoneNumber
             };
             var result = await _userManger.CreateAsync(newUser, request.Password);
+            await  _userManger.AddClaimAsync(newUser, new System.Security.Claims.Claim("FullName", request.FirstName + " " + request.LastName));
             if(!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));

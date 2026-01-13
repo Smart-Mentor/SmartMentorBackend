@@ -48,7 +48,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 // Use Jti for unique ID instead of Sub
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Sub, user.FirstName+" "+ user.LastName),
+                // new Claim(JwtRegisteredClaimNames.Sub, user.FirstName+" "+ user.LastName),
                 // Single NameIdentifier with USER ID
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 
