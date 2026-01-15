@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 
@@ -48,6 +49,21 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred during registration.");
             }
 
+        }
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Password change attempt for user ID: {UserId}", request.UserId);
+                var result = await _authService.ChangePasswordAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during password change: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred during password change.");
+            }
         }
     }
 }

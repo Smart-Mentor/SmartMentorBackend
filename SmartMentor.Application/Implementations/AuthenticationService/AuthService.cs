@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
@@ -29,6 +30,34 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             _signInManager = signInManager;
             _jwtToken = jwtToken;
         }
+
+        public async Task<string> ChangePasswordAsync(ChangePasswordRequest request)
+        {
+            try
+            {
+                var user=await _userManger.FindByIdAsync(request.UserId.ToString());
+                if(user == null)
+                {
+                    return await Task.FromResult("User not found");
+                }
+          
+                var chcekpassword= await _userManger.ChangePasswordAsync(user,request.CurrentPassword,request.NewPassword);
+                if(!chcekpassword.Succeeded)
+                {
+                    var errors = string.Join(", ", chcekpassword.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Password change failed for user: {UserId} with errors: {Errors}", request.UserId, errors);
+                    return await Task.FromResult($"Password change failed: {errors}");
+                }
+                return await Task.FromResult("Password changed successfully");
+            }catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", request.UserId);
+                return await Task.FromResult("An error occurred during password change");
+            }
+          // we need to ckeck if the current password equals the cient enterd password
+
+        }
+
         public async Task<AuthResponse> LoginAsync(loginRequest request)
         {
             try

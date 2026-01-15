@@ -24,7 +24,7 @@ namespace SmartMentorApi
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
                 
-                app.UseForwardedHeaders();
+                app.UseHttpsRedirection();
                 app.UseAuthentication();
                 app.UseAuthorization();
                 app.UseRouting();
