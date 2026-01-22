@@ -15,5 +15,6 @@ namespace SmartMentor.Abstraction.Services.AuthenticationService
         Task<AuthResponse> LoginAsync(loginRequest request);
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
         Task<string> ChangePasswordAsync(ChangePasswordRequest request);
+        Task<MeResponse> GetResponseAsync();
     }
 }
