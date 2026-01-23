@@ -59,7 +59,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", request.UserId);
                 return await Task.FromResult("An error occurred during password change");
             }
-          // we need to ckeck if the current password equals the cient enterd password
+          // Note: UserManager.ChangePasswordAsync already validates that the current password matches the client-entered password.
 
         }
 
