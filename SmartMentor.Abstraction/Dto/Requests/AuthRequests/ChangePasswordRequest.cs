@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SmartMentor.Abstraction.Dto.Requests.AuthRequests
 {
 public record ChangePasswordRequest(
-    Guid UserId,
-    string CurrentPassword,
-    string NewPassword
+    [Required] Guid UserId,
+    [Required] string CurrentPassword,
+    [Required] string NewPassword
 );
 }
