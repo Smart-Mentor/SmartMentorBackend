@@ -29,7 +29,7 @@ namespace SmartMentorApi.Extentions
                 {
                     new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        Reference = new OpenApiReference    
                         {
                             Type = ReferenceType.SecurityScheme,
                             Id = schemeName

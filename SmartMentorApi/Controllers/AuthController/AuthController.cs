@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -73,7 +74,8 @@ namespace SmartMentorApi.Controllers.AuthController
             try
             {
                 _logger.LogInformation("Fetching profile for the authenticated user.");
-                var result = await _authService.GetProfileAsync();
+                var userId=HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;     
+                var result = await _authService.GetProfileAsync(userId);
                 return Ok(result);
             }
             catch (Exception ex)
