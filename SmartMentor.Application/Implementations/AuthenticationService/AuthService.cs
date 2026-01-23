@@ -63,7 +63,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
 
         }
 
-        public async Task<MeResponse> GetResponseAsync()
+        public async Task<MeResponse> GetProfileAsync()
         {
             try
             {

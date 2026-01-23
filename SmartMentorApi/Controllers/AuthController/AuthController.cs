@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
@@ -63,6 +64,22 @@ namespace SmartMentorApi.Controllers.AuthController
             {
                 Log.Error("Error during password change: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred during password change.");
+            }
+        }
+        [HttpGet("me")]
+        [Authorize(Roles ="Student")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            try
+            {
+                _logger.LogInformation("Fetching profile for the authenticated user.");
+                var result = await _authService.GetProfileAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error fetching profile: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred while fetching the profile.");
             }
         }
     }

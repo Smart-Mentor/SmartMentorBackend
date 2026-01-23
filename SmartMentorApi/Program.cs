@@ -23,13 +23,19 @@ namespace SmartMentorApi
                 await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
-                
-                app.UseHttpsRedirection();
-                app.UseAuthentication();
-                app.UseAuthorization();
                 app.UseRouting();
 
-
+                app.UseHttpsRedirection();
+                app.Use(async (context, next) =>
+                {
+                    Log.Information("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
+                    Log.Information("Authorization Header: {Auth}",
+                        context.Request.Headers["Authorization"].ToString());
+                    await next();
+                    Log.Information("Response Status: {StatusCode}", context.Response.StatusCode);
+                });
+                app.UseAuthentication();
+                app.UseAuthorization();
                 app.MapControllers();
 
                 app.Run();
