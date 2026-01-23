@@ -67,7 +67,7 @@ namespace SmartMentorApi.Controllers.AuthController
             }
         }
         [HttpGet("me")]
-        [Authorize(Roles ="Student")]
+        [Authorize(Roles = "Student,Mentor,Admin")]
         public async Task<IActionResult> GetMyProfile()
         {
             try
