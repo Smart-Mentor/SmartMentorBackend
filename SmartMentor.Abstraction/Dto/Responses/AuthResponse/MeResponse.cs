@@ -1,4 +1,4 @@
-namespace SmartMentor.Abstraction.Dto.Requests.AuthRequests
+namespace SmartMentor.Abstraction.Dto.Responses.AuthResponse
 {
      public class MeResponse
     {
