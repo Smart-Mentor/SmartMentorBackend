@@ -19,8 +19,8 @@ namespace SmartMentorApi
             
             services.AddOpenApidocumentation();
             services.AddControllers();
-            services.AddAuthorization();
-            services.AddHttpContextAccessor();
+            // services.AddAuthorization();
+            // services.AddHttpContextAccessor();
             services.AddDatabase(configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException("The Connectionstring is Null or Empty "));
             services.AddIdenttiyExtention();
