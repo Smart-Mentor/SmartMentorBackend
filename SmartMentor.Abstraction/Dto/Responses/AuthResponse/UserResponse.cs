@@ -8,7 +8,6 @@ namespace SmartMentor.Abstraction.Dto.Responses.AuthResponse
         Guid UserId,
         string FirstName,
         string LastName,
-        [Required(ErrorMessage = "Email is required.")]
         string Email,
         string Role,
         bool IsSuccessful,
