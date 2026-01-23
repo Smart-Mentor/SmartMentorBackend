@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.ComponentModel.DataAnnotations;
+
 // SmartMentor.Abstraction/Dto/Responses/AuthResponse/UserResponse.cs
 namespace SmartMentor.Abstraction.Dto.Responses.AuthResponse
 {

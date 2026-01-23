@@ -23,13 +23,22 @@ namespace SmartMentorApi
                 await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
-                
-                app.UseForwardedHeaders();
-                app.UseAuthentication();
-                app.UseAuthorization();
+                app.UseHttpsRedirection();
                 app.UseRouting();
 
-
+                app.Use(async (context, next) =>
+                {
+                    Log.Information("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
+                    var authHeader = context.Request.Headers["Authorization"].ToString();
+                    var authInfo = string.IsNullOrWhiteSpace(authHeader)
+                        ? "None"
+                        : authHeader.Split(' ', 2)[0]; // log only the scheme (e.g., "Bearer")
+                    Log.Information("Authorization Header (scheme only): {AuthScheme}", authInfo);
+                    await next();
+                    Log.Information("Response Status: {StatusCode}", context.Response.StatusCode);
+                });
+                app.UseAuthentication();
+                app.UseAuthorization();
                 app.MapControllers();
 
                 app.Run();

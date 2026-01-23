@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
+using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
@@ -15,12 +18,15 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         private readonly ILogger<AuthService> _logger;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IJwtTokenService _jwtToken;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthService(UserManager<ApplicationUser>userManger,
             RoleManager<ApplicationRole> roleManager,
             ILogger<AuthService>logger,
             SignInManager<ApplicationUser>signInManager,
-            IJwtTokenService jwtToken
+            IJwtTokenService jwtToken,
+            IHttpContextAccessor httpContextAccessor
+            
             )
         {
             _userManger = userManger;
@@ -28,7 +34,83 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             _logger = logger;
             _signInManager = signInManager;
             _jwtToken = jwtToken;
+            _httpContextAccessor= httpContextAccessor;
         }
+
+        public async Task<string> ChangePasswordAsync(ChangePasswordRequest request)
+        {
+            try
+            {
+                var user=await _userManger.FindByIdAsync(request.UserId.ToString());
+                if(user == null)
+                {
+                    return await Task.FromResult("User not found");
+                }
+              // we need to ckeck if the current password equals the client enterd password
+          
+                var chcekpassword= await _userManger.ChangePasswordAsync(user,request.CurrentPassword,request.NewPassword);
+                if(!chcekpassword.Succeeded)
+                {
+                    var errors = string.Join(", ", chcekpassword.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Password change failed for user: {UserId} with errors: {Errors}", request.UserId, errors);
+                    return await Task.FromResult($"Password change failed: {errors}");
+                }
+                return await Task.FromResult("Password changed successfully");
+            }catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", request.UserId);
+                return await Task.FromResult("An error occurred during password change");
+            }
+
+        }
+
+        public async Task<MeResponse> GetProfileAsync()
+        {
+            try
+            {
+            _logger.LogInformation("Fetching profile information for the authenticated user.");
+            // Get the authenticated user from the context (this is just a placeholder, actual implementation may vary)
+            var currentuser= _httpContextAccessor.HttpContext.User;
+            var userId=currentuser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User ID not found in claims");
+               throw new NullReferenceException("User ID not found in claims");
+            }
+            // fetch the user from the database
+            var user=await _userManger.FindByIdAsync(userId);
+            // validate if the user is null
+                if(user == null)
+                {
+                    _logger.LogWarning("User not found with ID: {UserId}", userId);
+                throw new NullReferenceException("User not found");
+                }
+                // get the roles of the user
+                var roles=await _userManger.GetRolesAsync(user);
+
+                var response=new MeResponse
+                {
+                    UserId= user.Id,
+                    Email= user.Email,
+                    UserName= user.UserName,
+                    FirstName= user.FirstName,
+                    LastName= user.LastName,
+                    PhoneNumber= user.PhoneNumber,
+                    EmailConfirmed= user.EmailConfirmed,
+                    PhoneNumberConfirmed= user.PhoneNumberConfirmed, 
+                    Roles= roles.ToList()
+                };
+        
+            return response;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching profile information.");
+                throw;
+                
+            }
+        }
+
         public async Task<AuthResponse> LoginAsync(loginRequest request)
         {
             try

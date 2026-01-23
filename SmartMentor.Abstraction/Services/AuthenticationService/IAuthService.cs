@@ -1,4 +1,6 @@
-﻿using SmartMentor.Abstraction.Dto.Requests.AuthService;
+﻿using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
+using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
+using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
 using System;
@@ -13,5 +15,7 @@ namespace SmartMentor.Abstraction.Services.AuthenticationService
     {
         Task<AuthResponse> LoginAsync(loginRequest request);
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
+        Task<string> ChangePasswordAsync(ChangePasswordRequest request);
+        Task<MeResponse> GetProfileAsync();
     }
 }

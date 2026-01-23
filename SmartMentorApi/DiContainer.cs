@@ -12,6 +12,7 @@ namespace SmartMentorApi
             var services = builder.Services;
             var configuration = builder.Configuration;
             var host = builder.Host;
+            var env = builder.Environment;
             host.AddSerilog();
             
             // Bind JwtSettings to configuration
@@ -19,11 +20,13 @@ namespace SmartMentorApi
             
             services.AddOpenApidocumentation();
             services.AddControllers();
+            // services.AddAuthorization();
+            // services.AddHttpContextAccessor();
             services.AddDatabase(configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException("The Connectionstring is Null or Empty "));
             services.AddIdenttiyExtention();
             services.AddTransient<DataSeeder>();
-            services.ConfigureJwt(configuration);
+            services.ConfigureJwt(configuration,env);
             services.RegisterServices();
             
             return builder;

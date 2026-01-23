@@ -27,6 +27,7 @@ namespace SmartMentorApi.Extentions
         {
             services.AddOpenApi(options =>
             {
+                options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
                 options.AddDocumentTransformer((doument, context, _) =>
                 {
                     doument.Info = new OpenApiInfo
@@ -116,7 +117,7 @@ namespace SmartMentorApi.Extentions
 
             return services;
         }
-        public static IServiceCollection ConfigureJwt(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection ConfigureJwt(this IServiceCollection services,IConfiguration configuration,IWebHostEnvironment env)
         {
 
             var jwtKey = configuration["JwtSettings:Secret"];
@@ -142,8 +143,44 @@ namespace SmartMentorApi.Extentions
                         ValidIssuer = configuration["JwtSettings:Issuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                     };
+                    if (env.IsDevelopment())
+                    {
+                        // Add these event handlers for debugging
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnAuthenticationFailed = context =>
+                            {
+                                Log.Error("Authentication failed: {Message}", context.Exception.Message);
+                                Log.Error("Exception: {Exception}", context.Exception.ToString());
+                                return Task.CompletedTask;
+                            },
+                            OnTokenValidated = context =>
+                            {
+                                Log.Debug("Token validated successfully");
+                                var claims = context.Principal.Claims.Select(c => $"{c.Type}={c.Value}");
+                                Log.Information("Claims: {Claims}", string.Join(", ", claims));
+                                return Task.CompletedTask;
+                            },
+                            OnChallenge = context =>
+                            {
+                                Log.Debug("OnChallenge: {Error}, {ErrorDescription}", 
+                                    context.Error, context.ErrorDescription);
+                                return Task.CompletedTask;
+                            },
+                            OnMessageReceived = context =>
+                            {
+                                var token = context.Token;
+                                Log.Information("Token received: {TokenPreview}", 
+                                    token?.Substring(0, Math.Min(20, token.Length )));
+                                return Task.CompletedTask;
+                            }
+                        };
+                    }
 
+   
                 });
+                
+                
             return services;
         }
 
