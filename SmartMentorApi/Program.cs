@@ -29,8 +29,11 @@ namespace SmartMentorApi
                 app.Use(async (context, next) =>
                 {
                     Log.Information("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
-                    Log.Information("Authorization Header: {Auth}",
-                        context.Request.Headers["Authorization"].ToString());
+                    var authHeader = context.Request.Headers["Authorization"].ToString();
+                    var authInfo = string.IsNullOrWhiteSpace(authHeader)
+                        ? "None"
+                        : authHeader.Split(' ', 2)[0]; // log only the scheme (e.g., "Bearer")
+                    Log.Information("Authorization Header (scheme only): {AuthScheme}", authInfo);
                     await next();
                     Log.Information("Response Status: {StatusCode}", context.Response.StatusCode);
                 });
