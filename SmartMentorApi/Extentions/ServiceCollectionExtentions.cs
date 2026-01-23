@@ -167,9 +167,7 @@ namespace SmartMentorApi.Extentions
                         },
                         OnMessageReceived = context =>
                         {
-                            var token = context.Token;
-                            Log.Information("Token received: {TokenPreview}", 
-                                token?.Substring(0, Math.Min(20, token.Length )));
+                            // Do not log JWT tokens or their contents to avoid leaking sensitive information.
                             return Task.CompletedTask;
                         }
                     };
