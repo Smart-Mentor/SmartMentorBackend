@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
+using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
@@ -45,6 +46,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 {
                     return await Task.FromResult("User not found");
                 }
+              // we need to ckeck if the current password equals the client enterd password
           
                 var chcekpassword= await _userManger.ChangePasswordAsync(user,request.CurrentPassword,request.NewPassword);
                 if(!chcekpassword.Succeeded)
@@ -59,7 +61,6 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", request.UserId);
                 return await Task.FromResult("An error occurred during password change");
             }
-          // Note: UserManager.ChangePasswordAsync already validates that the current password matches the client-entered password.
 
         }
 

@@ -23,9 +23,9 @@ namespace SmartMentorApi
                 await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
+                app.UseHttpsRedirection();
                 app.UseRouting();
 
-                app.UseHttpsRedirection();
                 app.Use(async (context, next) =>
                 {
                     Log.Information("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
