@@ -1,6 +1,7 @@
 
 using Serilog;
 using SmartMentor.Persistence.Identity;
+using SmartMentorApi.Extensions.Middleware;
 using SmartMentorApi.Extentions;
 using System.Threading.Tasks;
 
@@ -24,19 +25,9 @@ namespace SmartMentorApi
                 app.UseSerilogRequestLogging();
                 app.ConfigScalar();
                 app.UseHttpsRedirection();
+                app.UseHsts();
                 app.UseRouting();
-
-                app.Use(async (context, next) =>
-                {
-                    Log.Information("Request: {Method} {Path}", context.Request.Method, context.Request.Path);
-                    var authHeader = context.Request.Headers["Authorization"].ToString();
-                    var authInfo = string.IsNullOrWhiteSpace(authHeader)
-                        ? "None"
-                        : authHeader.Split(' ', 2)[0]; // log only the scheme (e.g., "Bearer")
-                    Log.Information("Authorization Header (scheme only): {AuthScheme}", authInfo);
-                    await next();
-                    Log.Information("Response Status: {StatusCode}", context.Response.StatusCode);
-                });
+                app.UseLoggingMiddleware();
                 app.UseAuthentication();
                 app.UseAuthorization();
                 app.MapControllers();
