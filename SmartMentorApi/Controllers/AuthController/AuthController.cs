@@ -53,12 +53,18 @@ namespace SmartMentorApi.Controllers.AuthController
 
         }
         [HttpPut("change-password")]
-        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+        public async Task<IActionResult> ChangePassword([FromBody]ChangePasswordRequest request)
         {
             try
             {
-                _logger.LogInformation("Password change attempt for user ID: {UserId}", request.UserId);
-                var result = await _authService.ChangePasswordAsync(request);
+                // extract user id from the token
+                var userId=HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if(userId == null)
+                {
+                    return Unauthorized("User ID not found in token.");
+                }
+                _logger.LogInformation("Password change attempt for user ID: {UserId}", userId);
+                var result = await _authService.ChangePasswordAsync(request,userId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -75,6 +81,10 @@ namespace SmartMentorApi.Controllers.AuthController
             {
                 _logger.LogInformation("Fetching profile for the authenticated user.");
                 var userId=HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;     
+                if(userId == null)
+                {
+                    return Unauthorized("User ID not found in token.");
+                }
                 var result = await _authService.GetProfileAsync(userId);
                 return Ok(result);
             }

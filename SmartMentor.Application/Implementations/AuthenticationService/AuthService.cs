@@ -35,11 +35,15 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             _jwtToken = jwtToken;    
         }
 
-        public async Task<string> ChangePasswordAsync(ChangePasswordRequest request)
+        public async Task<string> ChangePasswordAsync(ChangePasswordRequest request,string UserId)
         {
             try
             {
-                var user=await _userManger.FindByIdAsync(request.UserId.ToString());
+                if(string.IsNullOrEmpty(UserId))
+                {
+                    return await Task.FromResult("User ID is missing");
+                }
+                var user=await _userManger.FindByIdAsync(UserId);
                 if(user == null)
                 {
                     return await Task.FromResult("User not found");
@@ -50,13 +54,13 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 if(!chcekpassword.Succeeded)
                 {
                     var errors = string.Join(", ", chcekpassword.Errors.Select(e => e.Description));
-                    _logger.LogWarning("Password change failed for user: {UserId} with errors: {Errors}", request.UserId, errors);
+                    _logger.LogWarning("Password change failed for user: {UserId} with errors: {Errors}", UserId, errors);
                     return await Task.FromResult($"Password change failed: {errors}");
                 }
                 return await Task.FromResult("Password changed successfully");
             }catch(Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", request.UserId);
+                _logger.LogError(ex, "An error occurred during password change for user ID: {UserId}", UserId);
                 return await Task.FromResult("An error occurred during password change");
             }
 
@@ -128,7 +132,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     return new AuthResponse ( IsSuccessful :false, Message : "Invalid email or password" );
                 }
                 var token = await _jwtToken.GenerateTokenAsync(user);
-
+                
                 return new AuthResponse ( IsSuccessful : true, 
                 Message : "Login successful",
                  Token : token ,
