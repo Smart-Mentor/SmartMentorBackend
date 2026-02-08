@@ -22,12 +22,12 @@ namespace SmartMentorApi
                 var app = builder.Build();
 
                 await app.SeedingIntialDataForRolesAndUsers();
-                app.UseSerilogRequestLogging();
+                app.UseSerilogRequestLogging(); 
                 app.ConfigScalar();
                 app.UseHttpsRedirection();
                 app.UseHsts();
                 app.UseRouting();
-                app.UseLoggingMiddleware();
+                // app.UseLoggingMiddleware();
                 app.UseAuthentication();
                 app.UseAuthorization();
                 app.MapControllers();
