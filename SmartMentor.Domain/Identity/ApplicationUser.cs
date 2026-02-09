@@ -7,8 +7,10 @@ namespace SmartMentor.Persistence.Identity
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public int CareerGoalId { get; set; }// Foreign key to CareerGoal
-        public CareerGoal CareerGoal { get; set; }
-        public bool IsProfileCompleted { get; set; }// This property indicates whether the user has completed their profile. It can be used to prompt users to complete their profile and to restrict access to certain features until the profile is completed.
+        public int? CareerGoalId { get; set; }// Foreign key to CareerGoal
+        public CareerGoal? CareerGoal { get; set; }
+        public bool IsProfileCompleted { get; set; } = false;// This property indicates whether the user has completed their profile. It can be used to prompt users to complete their profile and to restrict access to certain features until the profile is completed.
+        public ICollection<UserInterests>? UserInterests { get; set; } = new List<UserInterests>();
+        public ICollection<UserSkills>? UserSkills { get; set; } = new List<UserSkills>();
     }
 }

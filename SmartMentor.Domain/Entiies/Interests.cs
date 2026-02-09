@@ -5,7 +5,8 @@ namespace SmartMentor.Domain.Entiies
     // For example, if a user has an interest in "Data Science", they can be matched with mentors who also have an interest in "Data Science" or related fields.
     public class Interests
     {
-        public  int id { get; set; }
+        public  int Id { get; set; }
         public string Name { get; set; }
+        public ICollection<UserInterests> UserInterests { get; set; } = new List<UserInterests>();
     }
 }

@@ -6,8 +6,7 @@ namespace SmartMentor.Domain.Entiies
     // For example, if a user has a skill in "C#", they can be matched
     public class UserSkills
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }// Foreign key to ApplicationUser
+        public Guid UserId { get; set; }// Foreign key to ApplicationUser
         public int SkillId { get; set; }// Foreign key to Skill
         public string SkillLevel { get; set; } // e.g., Beginner, Intermediate, Expert
         public ApplicationUser User { get; set; }
