@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMentor.Persistence.Data;
 
@@ -11,9 +12,11 @@ using SmartMentor.Persistence.Data;
 namespace SmartMentor.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260208192328_CompleteUserProfile")]
+    partial class CompleteUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -264,7 +267,7 @@ namespace SmartMentor.Persistence.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CareerGoalId")
+                    b.Property<int>("CareerGoalId")
                         .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -433,7 +436,8 @@ namespace SmartMentor.Persistence.Migrations
                     b.HasOne("SmartMentor.Domain.Entiies.CareerGoal", "CareerGoal")
                         .WithMany()
                         .HasForeignKey("CareerGoalId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("CareerGoal");
                 });
