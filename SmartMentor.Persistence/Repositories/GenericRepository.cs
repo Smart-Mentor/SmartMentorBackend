@@ -11,6 +11,7 @@ namespace SmartMentor.Persistence.Repositories
     {
         private readonly ILogger<T> _logger;
         private readonly ApplicationDbContext _dbContext;
+        private readonly DbSet<T> _dbSet;
 
         public GenericRepository(
             ILogger<T> logger,
@@ -20,25 +21,26 @@ namespace SmartMentor.Persistence.Repositories
         {
             _logger = logger;
             _dbContext= dbContext;
+            _dbSet = _dbContext.Set<T>();
         }
         public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
         {
 
                 _logger.LogInformation($"Adding entity of type {typeof(T).Name}");
-               await _dbContext.Set<T>()
+               await _dbSet
                .AddAsync(entity,cancellationToken);
 
         }
 
         public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
-           return _dbContext.Set<T>()
+           return _dbSet
             .AnyAsync(predicate, cancellationToken);
         }
 
         public async  Task<int?> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Set<T>()
+            return await _dbSet
             .CountAsync(predicate, cancellationToken);
         }
 
@@ -46,23 +48,23 @@ namespace SmartMentor.Persistence.Repositories
         {
 
                 _logger.LogInformation($"Deleting entity of type {typeof(T).Name}");
-                _dbContext.Set<T>().Remove(entity);
+                _dbSet.Remove(entity);
 
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Finding entities of type {typeof(T).Name} with predicate {predicate}");
             
-            return await _dbContext.Set<T>()
+            return await _dbSet
             .Where(predicate)
             .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Getting all entities of type {typeof(T).Name}");
-             return await _dbContext.Set<T>()
+             return await _dbSet
              .ToListAsync(cancellationToken);
 
         }
@@ -72,7 +74,7 @@ namespace SmartMentor.Persistence.Repositories
                 _logger.LogInformation("Getting entity of type {EntityType} by id {KeyValues}", 
                 typeof(T).Name, string.Join(",", keyValues));
 
-                return await _dbContext.Set<T>()
+                return await _dbSet
                 .FindAsync(keyValues: keyValues, cancellationToken: cancellationToken);
         }
 
@@ -80,7 +82,7 @@ namespace SmartMentor.Persistence.Repositories
         {
              _logger.LogInformation($"Updating entity of type {typeof(T).Name}");
 
-                _dbContext.Set<T>()
+                _dbSet
                 .Update(entity);   
         }
 
