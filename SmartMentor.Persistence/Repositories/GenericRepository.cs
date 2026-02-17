@@ -32,6 +32,14 @@ namespace SmartMentor.Persistence.Repositories
 
         }
 
+        public Task<T> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+        {
+                _logger.LogInformation($"Adding range of entities of type {typeof(T).Name}");
+                return _dbSet
+                .AddRangeAsync(entities, cancellationToken)
+                .ContinueWith(t => entities.Last(), cancellationToken);
+        }
+
         public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
            return _dbSet
