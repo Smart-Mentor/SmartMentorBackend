@@ -7,7 +7,9 @@ using Scalar.AspNetCore;
 using Serilog;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
+using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
 using SmartMentor.Application.Implementations.AuthenticationService;
+using SmartMentor.Application.Implementations.CompleteUserProfileService;
 using SmartMentor.Persistence.Data;
 using SmartMentor.Persistence.Identity;
 using SmartMentor.Persistence.Repositories;
@@ -24,7 +26,7 @@ namespace SmartMentorApi.Extentions
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            
+            services.AddScoped<IUserProfileService, UserProfileService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)

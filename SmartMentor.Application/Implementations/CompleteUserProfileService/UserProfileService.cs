@@ -32,6 +32,24 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
             }
             try
             {
+                // validate the request (check if the skill ids and interest ids are valid)
+                    var skillIds = request.Skills.Select(s => s.SkillId).ToList();
+                var interestIds = request.InterestIds;
+                var existingSkillIds = await _unitOfWork.Repository<Skill>().FindAsync(s => skillIds.Contains(s.Id), cancellationToken);
+                var existingInterestIds = await _unitOfWork.Repository<Interests>().FindAsync(i => interestIds.Contains(i.Id), cancellationToken);
+                if (existingInterestIds.Count() != interestIds.Count)
+                {
+                    var invalidInterestIds = interestIds.Except(existingInterestIds.Select(i => i.Id));
+                    _logger.LogError($"The following interest ids are invalid: {string.Join(", ", invalidInterestIds)}");
+                    return Result.Fail($"The following interest ids are invalid: {string.Join(", ", invalidInterestIds)}");
+                }
+                if (existingSkillIds.Count() != skillIds.Count)
+                {
+                    var invalidSkillIds = skillIds.Except(existingSkillIds.Select(s => s.Id));
+                    _logger.LogError($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
+                    return Result.Fail($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
+                }
+
                     // i want to insert the user skills and interests in the database
                 var userSkills = request.Skills.Select(s => new UserSkills
                 {
@@ -44,11 +62,16 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 {
                     UserId = userId,
                     InterestId = i
-                }).ToList();
+                }).ToList();    
                 // i will use the unit of work to insert the user skills and interests in the database
                 await _unitOfWork.Repository<UserSkills>().AddRangeAsync(userSkills,cancellationToken);
                 await _unitOfWork.Repository<UserInterests>().AddRangeAsync(userInterests,cancellationToken);
-                
+                var isCareerGoalExist = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync([request.CareerGoalId],cancellationToken);
+                if (isCareerGoalExist == null)
+                {
+                    _logger.LogError($"Career goal with Id {request.CareerGoalId} does not exist.");
+                    return Result.Fail($"Career goal with Id {request.CareerGoalId} does not exist.");
+                }
                 // assign the CarrerGoalId FK into the user table
                user.CareerGoalId = request.CareerGoalId;
                user.IsProfileCompleted = true;
