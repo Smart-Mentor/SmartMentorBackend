@@ -1,3 +1,4 @@
+using SmartMentor.Domain.Enums;
 using SmartMentor.Persistence.Identity;
 
 namespace SmartMentor.Domain.Entiies
@@ -8,7 +9,7 @@ namespace SmartMentor.Domain.Entiies
     {
         public Guid UserId { get; set; }// Foreign key to ApplicationUser
         public int SkillId { get; set; }// Foreign key to Skill
-        public string SkillLevel { get; set; } // e.g., Beginner, Intermediate, Expert
+        public SkillLevelEnum SkillLevel { get; set; } // e.g., Beginner, Intermediate, Expert
         public ApplicationUser User { get; set; }
         public Skill Skill { get; set; }
     }

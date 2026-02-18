@@ -31,7 +31,6 @@ namespace SmartMentorApi
                 app.UseAuthentication();
                 app.UseAuthorization();
                 app.MapControllers();
-
                 app.Run();
             }
             catch (Exception ex)
