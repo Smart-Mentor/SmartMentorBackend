@@ -46,10 +46,16 @@ namespace SmartMentor.Persistence.Repositories
             .AnyAsync(predicate, cancellationToken);
         }
 
-        public async  Task<int?> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default)
+        public async  Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default)
         {
-            return await _dbSet
-            .CountAsync(predicate, cancellationToken);
+            if(predicate == null)
+            {
+                return await _dbSet.CountAsync(cancellationToken);
+            }
+            else
+            {
+                return await _dbSet.CountAsync(predicate, cancellationToken);
+            }
         }
 
         public void Delete(T entity)
