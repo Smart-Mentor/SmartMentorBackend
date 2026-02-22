@@ -28,6 +28,7 @@ namespace SmartMentorApi
             services.ConfigureJwt(configuration,env);
             services.AddTransient<DataSeeder>();
             services.AddTransient<UserSkillsInterestsSeeder>();
+            services.AddTransient<CareerGoalRequiredSkillSeeder>();
             services.RegisterServices();
             
             return builder;

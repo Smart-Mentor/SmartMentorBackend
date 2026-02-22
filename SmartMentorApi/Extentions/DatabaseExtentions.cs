@@ -10,15 +10,22 @@ namespace SmartMentorApi.Extentions
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
             var logger = services.GetRequiredService<ILogger<Program>>();
+
             try
             {
                 var db = services.GetRequiredService<ApplicationDbContext>();
+
                 logger.LogInformation("Applying pending migrations (if any)");
                 await db.Database.MigrateAsync();
-                var UserSkillsAndInterestSeeder=services.GetRequiredService<UserSkillsInterestsSeeder>();
+
                 var seeder = services.GetRequiredService<DataSeeder>();
+                var userSkillsSeeder = services.GetRequiredService<UserSkillsInterestsSeeder>();
+                var careerGoalRequiredSkillSeeder = services.GetRequiredService<CareerGoalRequiredSkillSeeder>();
+
                 await seeder.SeedRolesAndUsersAsync(services);
-                await UserSkillsAndInterestSeeder.SeedUserSkillsAndInterestsAsync();
+                await userSkillsSeeder.SeedUserSkillsAndInterestsAsync();
+                await careerGoalRequiredSkillSeeder.SeedAsync(); 
+
                 logger.LogInformation("Database seeding completed.");
             }
             catch (Exception ex)
