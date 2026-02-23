@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Domain.Entiies;
 using SmartMentor.Domain.Enums;
 using System;
@@ -11,14 +12,14 @@ namespace SmartMentor.Persistence.Data
 {
     public class CareerGoalRequiredSkillSeeder
     {
-        private readonly ApplicationDbContext _context;
+       private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CareerGoalRequiredSkillSeeder> _logger;
 
         public CareerGoalRequiredSkillSeeder(
-            ApplicationDbContext context,
+            IUnitOfWork unitOfWork,
             ILogger<CareerGoalRequiredSkillSeeder> logger)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -26,7 +27,8 @@ namespace SmartMentor.Persistence.Data
         {
             try
             {
-                if (_context.CareerGoalRequiredSkills.Any())
+                bool hasCareerGoalRequiredSkills = await _unitOfWork.Repository<CareerGoalRequiredSkill>().AnyAsync(cancellationToken: default);
+                if (hasCareerGoalRequiredSkills)
                 {
                     _logger.LogInformation("CareerGoalRequiredSkills already seeded.");
                     return;
@@ -66,8 +68,8 @@ namespace SmartMentor.Persistence.Data
                     }
                 };
 
-                await _context.CareerGoalRequiredSkills.AddRangeAsync(data);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Repository<CareerGoalRequiredSkill>().AddRangeAsync(data);
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("CareerGoalRequiredSkills seeded successfully.");
             }
