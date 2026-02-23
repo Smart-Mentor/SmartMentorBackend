@@ -40,8 +40,13 @@ namespace SmartMentor.Persistence.Repositories
                 .ContinueWith(t => entities.Last(), cancellationToken);
         }
 
-        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default)
         {
+           _logger.LogInformation($"Checking if any entity of type {typeof(T).Name} exists with predicate {predicate}");
+            if(predicate == null)
+            {
+                return _dbSet.AnyAsync(cancellationToken);
+            }
            return _dbSet
             .AnyAsync(predicate, cancellationToken);
         }
