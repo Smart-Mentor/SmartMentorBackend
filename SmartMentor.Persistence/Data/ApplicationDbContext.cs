@@ -31,7 +31,8 @@ namespace SmartMentor.Persistence.Data
             public DbSet<Skill> Skills { get; set; }
             public DbSet<UserInterests> UserInterests { get; set; }
             public DbSet<UserSkills> UserSkills { get; set; }
-            
+            public DbSet<CareerGoalRequiredSkill> CareerGoalRequiredSkills { get; set; }
 
-    }
+
+        }
 }

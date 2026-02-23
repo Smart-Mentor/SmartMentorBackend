@@ -10,5 +10,7 @@ namespace SmartMentor.Domain.Entiies
         public  int  Id { get; set; }
         public string  Name { get; set; }
         public string? Description { get; set; }
+        public ICollection<CareerGoalRequiredSkill> RequiredSkills { get; set; }
+
     }
 }
