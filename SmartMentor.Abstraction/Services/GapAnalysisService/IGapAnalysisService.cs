@@ -4,6 +4,6 @@ namespace SmartMentor.Abstraction.Services.GapAnalysisService
 {
     public interface IGapAnalysisService
     {
-        Task<GapAnalysisResponse> AnalyzeGapAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<GapAnalysisResponse> AnalyzeGapAsync(Guid userId, CancellationToken cancellationToken);
     }
 }

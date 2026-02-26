@@ -18,7 +18,7 @@ namespace SmartMentor.Abstraction.Dto.Responses.GapAnalysisResponse
         public int SkillId { get; set; }
         public string SkillName { get; set; } = string.Empty;
         public SkillLevelEnum RequiredLevel { get; set; }
-        public SkillLevelEnum CurrentLevel { get; set; }
+        public SkillLevelEnum? CurrentLevel { get; set; }
         
     }
 }

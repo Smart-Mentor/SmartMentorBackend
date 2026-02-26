@@ -23,7 +23,7 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
             _logger = logger;
         }
 
-        public async Task<GapAnalysisResponse> AnalyzeGapAsync(Guid userId, CancellationToken cancellationToken = default)
+        public async Task<GapAnalysisResponse> AnalyzeGapAsync(Guid userId, CancellationToken cancellationToken )
         {
             _logger.LogInformation("Starting gap analysis for user {UserId}", userId);
             try
@@ -51,9 +51,11 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                 }
                 // get the required skills for the career goal based in the career goal id
                 var requiredSkills = await _unitOfWork.Repository<CareerGoalRequiredSkill>().FindAsync( 
-                    x => x.CareerGoalId == user.CareerGoalId,
-                    new Expression<Func<CareerGoalRequiredSkill, object>>[] { x => x.Skill },
-                    cancellationToken);
+                    x => x.CareerGoalId == user.CareerGoalId.Value,
+                    cancellationToken,
+                    x=>x.Skill
+                    );
+                    
                 // get the user's current skills
                 var userSkills = await _unitOfWork.Repository<UserSkills>().FindAsync(x => x.UserId == userId, cancellationToken);
                 var userSkillDict = userSkills.ToDictionary(s=>s.SkillId, s=>s.SkillLevel);
@@ -64,18 +66,20 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                     WeakSkills = new List<SkillGapItem>(),
                     ReadySkills = new List<SkillGapItem>()
                 };
-
                 foreach(var requiredSkill in requiredSkills)
                 {
+                    // Check for cancellation before processing each skill
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var HasSkill= userSkillDict.TryGetValue(requiredSkill.SkillId, out var currentLevel) ;
                     var skillGapItem = new SkillGapItem
                     {
                         SkillId = requiredSkill.SkillId,
                         SkillName = requiredSkill.Skill.Name,
                         RequiredLevel = requiredSkill.RequiredLevel,
-                        CurrentLevel = userSkillDict.TryGetValue(requiredSkill.SkillId, out var currentLevel) ? currentLevel : 0
+                        CurrentLevel = HasSkill ? currentLevel : null
                     };
 
-                    if (skillGapItem.CurrentLevel == 0)
+                    if (!skillGapItem.CurrentLevel.HasValue)
                     {
                         response.MissingSkills.Add(skillGapItem);
                     }

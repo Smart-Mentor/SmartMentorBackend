@@ -25,21 +25,26 @@ namespace SmartMentorApi.Controllers.GapAnalysisController
             _gapAnalysisService = gapAnalysisService;
         }
         [HttpGet("gap-analysis")]
-        public async Task<GapAnalysisResponse> Analysis()
+        public async Task<ActionResult<GapAnalysisResponse>> Analysis(CancellationToken cancellationToken)
         {
             var userid=HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userid))
             {
                 _logger.LogWarning("User ID not found in claims.");
-                throw new UnauthorizedAccessException("User ID not found in claims.");
+               return Unauthorized("User ID not found in claims.");
             }
-            var result= _gapAnalysisService.AnalyzeGapAsync(Guid.Parse(userid),cancellationToken: default);
+            if(!Guid.TryParse(userid, out var userGuid))
+            {
+                _logger.LogWarning("Invalid User ID format: {UserId}", userid);
+                return Unauthorized("Invalid User ID format.");
+            }
+            var result= await _gapAnalysisService.AnalyzeGapAsync(userGuid,cancellationToken);
             if (result == null)
             {
                 _logger.LogWarning("Gap analysis result is null for user {UserId}", userid);
                 throw new Exception("Gap analysis failed. Please try again later.");
             }
-            return await result;
+            return Ok(result);
         }
     }
 }
