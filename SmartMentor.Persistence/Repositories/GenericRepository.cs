@@ -80,6 +80,22 @@ namespace SmartMentor.Persistence.Repositories
             .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, 
+        CancellationToken cancellationToken ,
+        params Expression<Func<T, object>>[] includes)
+        {
+            _logger.LogInformation($"Finding entities of type {typeof(T).Name} with predicate and includes");
+            
+            IQueryable<T> query = _dbSet.Where(predicate);
+            
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            
+            return await query.ToListAsync(cancellationToken);
+        }
+
         public async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Getting all entities of type {typeof(T).Name}");

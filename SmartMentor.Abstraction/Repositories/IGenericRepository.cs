@@ -9,7 +9,12 @@ namespace SmartMentor.Abstraction.Repositories
         Task AddAsync(T entity, CancellationToken cancellationToken = default);
         void Update(T entity);
         void Delete(T entity);
-        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, 
+            CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, 
+            CancellationToken cancellationToken,
+            params Expression<Func<T, object>>[] includes
+            );
         Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate=null, CancellationToken cancellationToken = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default);
         Task<T> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
