@@ -3,6 +3,7 @@ namespace SmartMentorApi.Controllers.UserController
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SmartMentor.Abstraction.Dto.Requests.UserRequests;
+    using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
     using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
     using System.Security.Claims;
 
@@ -21,21 +22,84 @@ namespace SmartMentorApi.Controllers.UserController
         [HttpPost("complete-profile")]
         public async Task<IActionResult> CompleteProfile([FromBody] CompleteUserProfileRequest request, CancellationToken cancellationToken)
         {
+            // Validate user authentication
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized();
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Authentication failed. User ID not found in token.",
+                    ErrorCode = "AUTH_001",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "Authorization",
+                            Message = "You must be logged in to complete your profile. Please provide a valid authentication token."
+                        }
+                    }
+                });
             }
 
+            // Validate model state
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .SelectMany(x => x.Value!.Errors.Select(e => new ErrorDetail
+                    {
+                        Field = x.Key,
+                        Message = e.ErrorMessage
+                    }))
+                    .ToList();
+
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Validation failed. Please check the provided data and try again.",
+                    ErrorCode = "VALIDATION_001",
+                    Errors = validationErrors
+                });
+            }
+
+            // Execute service call
             var result = await _userProfileService.CompleteAsync(Guid.Parse(userId), request, cancellationToken);
+            
             if (result.IsSuccess)
             {
-                return Ok(new { Message = "User profile completed successfully." });
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User profile completed successfully.",
+                    Data = new
+                    {
+                        UserId = userId,
+                        ProfileCompletedAt = DateTime.UtcNow
+                    }
+                });
             }
             else
             {
-                return BadRequest(result.Errors.Select(e => e.Message));
+                var errors = result.Errors.Select(e => new ErrorDetail
+                {
+                    Field = e.Metadata.ContainsKey("PropertyName") ? e.Metadata["PropertyName"]?.ToString() ?? "General" : "General",
+                    Message = e.Message,
+                    Code = e.Metadata.ContainsKey("ErrorCode") ? e.Metadata["ErrorCode"]?.ToString() : null
+                }).ToList();
+
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Failed to complete user profile. Please review the errors below.",
+                    ErrorCode = "PROFILE_001",
+                    Errors = errors
+                });
             }
         }
     }
 }
+
+
+
+
