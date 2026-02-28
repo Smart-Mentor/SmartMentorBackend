@@ -11,5 +11,6 @@ namespace SmartMentor.Abstraction.Services.CompleteUserProfileService.cs
     public interface IUserProfileService
     {
         Task<Result> CompleteAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default);
+        Task<Result> UpdateAsync(Guid userId,CompleteUserProfileRequest request,CancellationToken cancellationToken = default);
     }
 }

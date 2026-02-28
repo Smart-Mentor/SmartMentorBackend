@@ -90,8 +90,104 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
             {
                 _logger.LogError($"An error occurred while completing the user profile with Id {userId}.");
                 return Result.Fail($"An error occurred while completing the user profile with Id {userId}.");
+            }    
+        }
+
+        public async Task<Result> UpdateAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Updating profile for user {UserId}", userId);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+            {
+                _logger.LogWarning("User with Id {UserId} not found during profile update.", userId);
+                return Result.Fail($"User with Id {userId} not found.");
             }
-            
+
+            try
+            {
+                // =========================
+                // Remove old skills
+                // =========================
+                var oldSkills = await _unitOfWork.Repository<UserSkills>()
+                    .FindAsync(x => x.UserId == userId, cancellationToken);
+
+                if (oldSkills.Any())
+                {
+                    _unitOfWork.Repository<UserSkills>().RemoveRange(oldSkills);
+                    _logger.LogInformation("Removed {Count} old skills for user {UserId}", oldSkills.Count(), userId);
+                }
+
+                // =========================
+                // Remove old interests
+                // =========================
+                var oldInterests = await _unitOfWork.Repository<UserInterests>()
+                    .FindAsync(x => x.UserId == userId, cancellationToken);
+
+                if (oldInterests.Any())
+                {
+                    _unitOfWork.Repository<UserInterests>().RemoveRange(oldInterests);
+                    _logger.LogInformation("Removed {Count} old interests for user {UserId}", oldInterests.Count(), userId);
+                }
+
+                // =========================
+                // Add new skills
+                // =========================
+                var newSkills = request.Skills.Select(s => new UserSkills
+                {
+                    UserId = userId,
+                    SkillId = s.SkillId,
+                    SkillLevel = s.SkillLevel
+                }).ToList();
+
+                await _unitOfWork.Repository<UserSkills>()
+                    .AddRangeAsync(newSkills, cancellationToken);
+
+                _logger.LogInformation("Added {Count} new skills for user {UserId}", newSkills.Count, userId);
+
+                // =========================
+                // Add new interests
+                // =========================
+                var newInterests = request.InterestIds.Select(i => new UserInterests
+                {
+                    UserId = userId,
+                    InterestId = i
+                }).ToList();
+
+                await _unitOfWork.Repository<UserInterests>()
+                    .AddRangeAsync(newInterests, cancellationToken);
+
+                _logger.LogInformation("Added {Count} new interests for user {UserId}", newInterests.Count, userId);
+
+                // =========================
+                // Update career goal
+                // =========================
+                user.CareerGoalId = request.CareerGoalId;
+
+                var identityResult = await _userManager.UpdateAsync(user);
+
+                if (!identityResult.Succeeded)
+                {
+                    _logger.LogError(
+                        "Failed to update identity user {UserId}. Errors: {Errors}",
+                        userId,
+                        string.Join(", ", identityResult.Errors.Select(e => e.Description)));
+
+                    return Result.Fail("Failed to update user.");
+                }
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Profile updated successfully for user {UserId}", userId);
+
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating profile for user {UserId}", userId);
+                return Result.Fail("An unexpected error occurred while updating profile.");
+            }
         }
     }
 }
