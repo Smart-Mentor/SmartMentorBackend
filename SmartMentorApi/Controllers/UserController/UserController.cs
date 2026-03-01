@@ -4,7 +4,7 @@ namespace SmartMentorApi.Controllers.UserController
     using Microsoft.AspNetCore.Mvc;
     using SmartMentor.Abstraction.Dto.Requests.UserRequests;
     using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
-    using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
+    using SmartMentor.Abstraction.Services.CompleteUserProfileService;
     using System.Security.Claims;
 
     [ApiController]
