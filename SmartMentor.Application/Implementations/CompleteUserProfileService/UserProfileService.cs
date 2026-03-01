@@ -1,9 +1,10 @@
 ﻿using FluentResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Dto.Requests.UserRequests;
 using SmartMentor.Abstraction.Repositories;
-using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
+using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Domain.Entiies;
 using SmartMentor.Persistence.Identity;
 
@@ -22,6 +23,33 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
             _userManager=userManager;
             _logger = logger;
         }
+        public async Task ValidateSkillsAndInterests(CompleteUserProfileRequest request)
+        {
+            var skillIds = request.Skills.Select(s => s.SkillId).ToList();
+            var interestIds = request.InterestIds;
+
+            var existingSkillIds = (await _unitOfWork.Repository<Skill>().FindAsync(s => skillIds.Contains(s.Id))).Select(s => s.Id).ToList();
+            var existingInterestIds = (await _unitOfWork.Repository<Interests>().FindAsync(i => interestIds.Contains(i.Id))).Select(i => i.Id).ToList();
+
+            if (existingInterestIds.Count() != interestIds.Count)
+            {
+                var invalidInterestIds = interestIds.Except(existingInterestIds);
+                throw new Exception($"The following interest ids are invalid: {string.Join(", ", invalidInterestIds)}");
+            }
+
+            if (existingSkillIds.Count() != skillIds.Count)
+            {
+                var invalidSkillIds = skillIds.Except(existingSkillIds);
+                throw new Exception($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
+            }
+            // validate the career goal id
+            var careerGoal = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync([request.CareerGoalId]);
+            if (careerGoal == null)
+            {
+                throw new Exception($"Career goal with Id {request.CareerGoalId} does not exist.");
+            }
+            _logger.LogInformation("Validation of skills, interests, and career goal completed successfully for career goal Id {CareerGoalId}", request.CareerGoalId);
+        }
         public async Task<Result> CompleteAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -33,22 +61,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
             try
             {
                 // validate the request (check if the skill ids and interest ids are valid)
-                    var skillIds = request.Skills.Select(s => s.SkillId).ToList();
-                var interestIds = request.InterestIds;
-                var existingSkillIds = await _unitOfWork.Repository<Skill>().FindAsync(s => skillIds.Contains(s.Id), cancellationToken);
-                var existingInterestIds = await _unitOfWork.Repository<Interests>().FindAsync(i => interestIds.Contains(i.Id), cancellationToken);
-                if (existingInterestIds.Count() != interestIds.Count)
-                {
-                    var invalidInterestIds = interestIds.Except(existingInterestIds.Select(i => i.Id));
-                    _logger.LogError($"The following interest ids are invalid: {string.Join(", ", invalidInterestIds)}");
-                    return Result.Fail($"The following interest ids are invalid: {string.Join(", ", invalidInterestIds)}");
-                }
-                if (existingSkillIds.Count() != skillIds.Count)
-                {
-                    var invalidSkillIds = skillIds.Except(existingSkillIds.Select(s => s.Id));
-                    _logger.LogError($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
-                    return Result.Fail($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
-                }
+                await ValidateSkillsAndInterests(request);
 
                     // i want to insert the user skills and interests in the database
                 var userSkills = request.Skills.Select(s => new UserSkills
@@ -86,10 +99,10 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 return Result.Ok();
             }
-            catch
+            catch(Exception ex)
             {
-                _logger.LogError($"An error occurred while completing the user profile with Id {userId}.");
-                return Result.Fail($"An error occurred while completing the user profile with Id {userId}.");
+                _logger.LogError(ex, $"An error occurred while completing the user profile with Id {userId}.");
+                return Result.Fail($"An error occurred while completing the user profile with Id {userId}. Error: {ex.Message}");
             }    
         }
 
@@ -107,9 +120,11 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
 
             try
             {
-                // =========================
+
+                // Validate the request (check if the skill ids and interest ids are valid)
+                 await ValidateSkillsAndInterests(request);
+               
                 // Remove old skills
-                // =========================
                 var oldSkills = await _unitOfWork.Repository<UserSkills>()
                     .FindAsync(x => x.UserId == userId, cancellationToken);
 
@@ -119,9 +134,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                     _logger.LogInformation("Removed {Count} old skills for user {UserId}", oldSkills.Count(), userId);
                 }
 
-                // =========================
                 // Remove old interests
-                // =========================
                 var oldInterests = await _unitOfWork.Repository<UserInterests>()
                     .FindAsync(x => x.UserId == userId, cancellationToken);
 
@@ -130,25 +143,16 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                     _unitOfWork.Repository<UserInterests>().RemoveRange(oldInterests);
                     _logger.LogInformation("Removed {Count} old interests for user {UserId}", oldInterests.Count(), userId);
                 }
-
-                // =========================
                 // Add new skills
-                // =========================
+                
                 var newSkills = request.Skills.Select(s => new UserSkills
                 {
                     UserId = userId,
                     SkillId = s.SkillId,
                     SkillLevel = s.SkillLevel
                 }).ToList();
-
-                await _unitOfWork.Repository<UserSkills>()
-                    .AddRangeAsync(newSkills, cancellationToken);
-
-                _logger.LogInformation("Added {Count} new skills for user {UserId}", newSkills.Count, userId);
-
-                // =========================
+               
                 // Add new interests
-                // =========================
                 var newInterests = request.InterestIds.Select(i => new UserInterests
                 {
                     UserId = userId,
@@ -159,6 +163,11 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                     .AddRangeAsync(newInterests, cancellationToken);
 
                 _logger.LogInformation("Added {Count} new interests for user {UserId}", newInterests.Count, userId);
+
+                _logger.LogInformation("Added {Count} new skills for user {UserId}", newSkills.Count, userId);
+                await _unitOfWork.Repository<UserSkills>()
+                    .AddRangeAsync(newSkills, cancellationToken);
+
 
                 // =========================
                 // Update career goal
@@ -176,9 +185,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
 
                     return Result.Fail("Failed to update user.");
                 }
-
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 _logger.LogInformation("Profile updated successfully for user {UserId}", userId);
 
                 return Result.Ok();

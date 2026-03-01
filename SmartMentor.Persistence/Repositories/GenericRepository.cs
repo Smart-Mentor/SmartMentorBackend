@@ -121,24 +121,22 @@ namespace SmartMentor.Persistence.Repositories
                 .Update(entity);   
         }
 
-        public void RemoveRange(IEnumerable<T> entities)
+        public void  RemoveRange(IEnumerable<T> entities)
         {
             if (entities == null)
             {
                 _logger.LogWarning("RemoveRange called with null entities for type {EntityType}", typeof(T).Name);
-                return;
+                throw new ArgumentNullException(nameof(entities), $"Entities collection cannot be null for type {typeof(T).Name}");
             }
-
             var entityList = entities.ToList();
 
             if (!entityList.Any())
             {
                 _logger.LogInformation("No entities found to remove for type {EntityType}", typeof(T).Name);
-                return;
+                throw new ArgumentException($"No entities to remove for type {typeof(T).Name}", nameof(entities));
             }
 
             _dbSet.RemoveRange(entityList);
-
             _logger.LogInformation(
                 "Removed {Count} entities of type {EntityType}",
                 entityList.Count,

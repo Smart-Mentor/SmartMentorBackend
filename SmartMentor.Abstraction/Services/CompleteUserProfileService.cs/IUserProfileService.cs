@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FluentResults;
 using SmartMentor.Abstraction.Dto.Requests.UserRequests;
 
-namespace SmartMentor.Abstraction.Services.CompleteUserProfileService.cs
+namespace SmartMentor.Abstraction.Services.CompleteUserProfileService
 {
     public interface IUserProfileService
     {
