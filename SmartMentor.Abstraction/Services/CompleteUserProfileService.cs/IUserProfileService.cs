@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using FluentResults;
 using SmartMentor.Abstraction.Dto.Requests.UserRequests;
 
-namespace SmartMentor.Abstraction.Services.CompleteUserProfileService.cs
+namespace SmartMentor.Abstraction.Services.CompleteUserProfileService
 {
     public interface IUserProfileService
     {
         Task<Result> CompleteAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default);
+        Task<Result> UpdateAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default);
     }
 }

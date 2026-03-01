@@ -7,7 +7,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
-using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
+using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Abstraction.Services.GapAnalysisService;
 using SmartMentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Application.Implementations.CompleteUserProfileService;

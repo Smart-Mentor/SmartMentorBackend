@@ -4,7 +4,7 @@ namespace SmartMentorApi.Controllers.UserController
     using Microsoft.AspNetCore.Mvc;
     using SmartMentor.Abstraction.Dto.Requests.UserRequests;
     using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
-    using SmartMentor.Abstraction.Services.CompleteUserProfileService.cs;
+    using SmartMentor.Abstraction.Services.CompleteUserProfileService;
     using System.Security.Claims;
 
     [ApiController]
@@ -96,6 +96,23 @@ namespace SmartMentorApi.Controllers.UserController
                     Errors = errors
                 });
             }
+        }
+
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] CompleteUserProfileRequest request, CancellationToken cancellationToken)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var result = await _userProfileService
+                .UpdateAsync(userId, request, cancellationToken);
+
+            if (result.IsSuccess)
+                return Ok(new { Message = "User profile updated successfully." });
+
+            return BadRequest(result.Errors.Select(e => e.Message));
         }
     }
 }
