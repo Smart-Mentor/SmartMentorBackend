@@ -40,8 +40,13 @@ namespace SmartMentor.Persistence.Repositories
                 .ContinueWith(t => entities.Last(), cancellationToken);
         }
 
-        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate, CancellationToken cancellationToken = default)
         {
+           _logger.LogInformation($"Checking if any entity of type {typeof(T).Name} exists with predicate {predicate}");
+            if(predicate == null)
+            {
+                return _dbSet.AnyAsync(cancellationToken);
+            }
            return _dbSet
             .AnyAsync(predicate, cancellationToken);
         }
@@ -73,6 +78,22 @@ namespace SmartMentor.Persistence.Repositories
             return await _dbSet
             .Where(predicate)
             .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, 
+        CancellationToken cancellationToken ,
+        params Expression<Func<T, object>>[] includes)
+        {
+            _logger.LogInformation($"Finding entities of type {typeof(T).Name} with predicate and includes");
+            
+            IQueryable<T> query = _dbSet.Where(predicate);
+            
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            
+            return await query.ToListAsync(cancellationToken);
         }
 
         public async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default)
