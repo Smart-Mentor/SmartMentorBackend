@@ -12,5 +12,6 @@ namespace SmartMentor.Abstraction.Services.CompleteUserProfileService
     {
         Task<Result> CompleteAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default);
         Task<Result> UpdateAsync(Guid userId, CompleteUserProfileRequest request, CancellationToken cancellationToken = default);
+        Task<Result<string>> updateSkillLevel(Guid userId ,int skillId, CancellationToken cancellationToken = default);
     }
 }

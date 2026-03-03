@@ -93,12 +93,25 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                     }
                     
                 }
+                var totalRequiredSkills = response.ReadySkills.Count + response.MissingSkills.Count + response.WeakSkills.Count;
+                var completionPercentage = totalRequiredSkills > 0 ? (response.ReadySkills.Count / totalRequiredSkills)*100 : 0;
+                // Compute the readiness level based on the completion percentage
+                var readinessLevel = GetReadinessLevel(completionPercentage);
                 return new GapAnalysisResponse
                 {
                     CareerGoalName = careerGoal.Name,
                     MissingSkills = response.MissingSkills,
                     WeakSkills = response.WeakSkills,
-                    ReadySkills = response.ReadySkills
+                    ReadySkills = response.ReadySkills,
+                    statusOfTheGapAnalysis = new StatusOfTheGapAnalysis
+                    {
+                        completionPercentage = completionPercentage,
+                        readyCount = response.ReadySkills.Count,
+                        weakcount = response.WeakSkills.Count,
+                        missingcount = response.MissingSkills.Count,
+                        readinessLevel = readinessLevel
+
+                    }
                 };
             }catch(DbException dbEx)
             {
@@ -110,6 +123,28 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                 _logger.LogError(ex, "An error occurred during gap analysis for user {UserId}", userId);
                 throw;
             }
+        }
+        public string GetReadinessLevel(int completionPercentage)
+        {
+            string readinessLevel;
+                if(completionPercentage == 100)
+                {
+                    readinessLevel = "job Ready";
+                }
+                else if (completionPercentage >= 70 && completionPercentage < 90)
+                {
+                    readinessLevel = "Advanced";
+                }
+                else if (completionPercentage >= 40 && completionPercentage < 70)
+                {
+                    readinessLevel = "Intermediate";
+                }
+                else
+                {
+                    readinessLevel = "Beginner";
+                }
+            
+                return readinessLevel;
         }
     }
 }

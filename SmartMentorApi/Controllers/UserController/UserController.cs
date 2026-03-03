@@ -114,6 +114,46 @@ namespace SmartMentorApi.Controllers.UserController
 
             return BadRequest(result.Errors.Select(e => e.Message));
         }
+        [HttpPatch("update-skill-level/{skillId}")]
+        public async Task<IActionResult> UpdateSkillLevel(int skillId,CancellationToken cancellationToken)
+        {
+            var userId=HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(userId == null)            {
+                return Unauthorized("User ID not found in token.");
+            }
+            var result = await _userProfileService.updateSkillLevel(Guid.Parse(userId), skillId, cancellationToken);
+            if (result.IsSuccess)
+            {
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "Skill level updated successfully.",
+                    Data = new
+                    {
+                        UserId=userId,
+                        SkillId=skillId,
+                        UpdatedAt = DateTime.UtcNow
+                    }
+                });
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Failed to update skill level.",
+                    ErrorCode = "SKILL_001",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "SkillLevel",
+                            Message = result.Errors.FirstOrDefault()?.Message ?? "Unknown error occurred."
+                        }
+                    }
+                });
+            }
+        }
     }
 }
 
