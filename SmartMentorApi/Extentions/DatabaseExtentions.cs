@@ -20,11 +20,11 @@ namespace SmartMentorApi.Extentions
 
                 var seeder = services.GetRequiredService<DataSeeder>();
                 var userSkillsSeeder = services.GetRequiredService<UserSkillsInterestsSeeder>();
-                var careerGoalRequiredSkillSeeder = services.GetRequiredService<CareerGoalRequiredSkillSeeder>();
+                //var careerGoalRequiredSkillSeeder = services.GetRequiredService<CareerGoalRequiredSkillSeeder>();
 
                 await seeder.SeedRolesAndUsersAsync(services);
                 await userSkillsSeeder.SeedUserSkillsAndInterestsAsync();
-                await careerGoalRequiredSkillSeeder.SeedAsync(); 
+                //await careerGoalRequiredSkillSeeder.SeedAsync(); 
 
                 logger.LogInformation("Database seeding completed.");
             }
