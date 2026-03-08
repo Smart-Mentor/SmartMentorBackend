@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Domain.Entiies;
+using SmartMentor.Domain.Enums;
 
 namespace SmartMentor.Persistence.Data
 {
@@ -23,11 +24,11 @@ namespace SmartMentor.Persistence.Data
                 var existingUserInterests = await _unitOfWork.Repository<Interests>().GetAllAsync();
                 var existingCareerGoals = await _unitOfWork.Repository<CareerGoal>().GetAllAsync();
 
-                if (existingUserSkills.Any() || existingUserInterests.Any() || existingCareerGoals.Any())
-                {
-                    _logger.LogInformation("User skills, career goals, and interests already exist. Skipping seeding.");
-                    return;
-                }
+                //if (existingUserSkills.Any() || existingUserInterests.Any() || existingCareerGoals.Any())
+                //{
+                //    _logger.LogInformation("User skills, career goals, and interests already exist. Skipping seeding.");
+                //    return;
+                //}
 
                 #region Skills
 
@@ -157,55 +158,55 @@ namespace SmartMentor.Persistence.Data
                 CareerGoal GetGoal(string name) => allGoals.First(g => g.Name == name);
 
                 var mappings = new List<CareerGoalRequiredSkill>
-            {
-                // Junior Backend .NET Developer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("C#").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("Entity Framework Core").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("SQL Server").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("RESTful API Design").Id },
+{
+                    // Junior Backend .NET Developer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("C#").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("Entity Framework Core").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("SQL Server").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("RESTful API Design").Id, RequiredLevel = SkillLevelEnum.Beginner, Priority = 3 },
 
-                // Full-Stack .NET Developer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("C#").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("SQL Server").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("HTML5").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("CSS3").Id },
+                    // Full-Stack .NET Developer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("C#").Id, RequiredLevel = SkillLevelEnum.Advanced, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id, RequiredLevel = SkillLevelEnum.Advanced, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("SQL Server").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("HTML5").Id, RequiredLevel = SkillLevelEnum.Beginner, Priority = 3 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("CSS3").Id, RequiredLevel = SkillLevelEnum.Beginner, Priority = 3 },
 
-                // Frontend React Developer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("HTML5").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("CSS3").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("Responsive Web Design").Id },
+                    // Frontend React Developer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("HTML5").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("CSS3").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("Responsive Web Design").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
 
-                // Data Analyst
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Python Programming").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Analysis with Pandas").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Visualization").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Writing Complex SQL Queries").Id },
+                    // Data Analyst
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Python Programming").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Analysis with Pandas").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Visualization").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Writing Complex SQL Queries").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
 
-                // Machine Learning Engineer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Python Programming").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Machine Learning Fundamentals").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Data Analysis with Pandas").Id },
+                    // Machine Learning Engineer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Python Programming").Id, RequiredLevel = SkillLevelEnum.Advanced, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Machine Learning Fundamentals").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Data Analysis with Pandas").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
 
-                // Cloud Engineer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Azure Cloud Basics").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Docker Containers").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("CI/CD Pipelines").Id },
+                    // Cloud Engineer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Azure Cloud Basics").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Docker Containers").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("CI/CD Pipelines").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
 
-                // DevOps Engineer
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Docker Containers").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("CI/CD Pipelines").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Azure Cloud Basics").Id },
+                    // DevOps Engineer
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Docker Containers").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("CI/CD Pipelines").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Azure Cloud Basics").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
 
-                // Cybersecurity Analyst
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("OWASP Security Principles").Id },
-                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("Authentication & Authorization (JWT)").Id },
-            };
+                    // Cybersecurity Analyst
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("OWASP Security Principles").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 1 },
+                    new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("Authentication & Authorization (JWT)").Id, RequiredLevel = SkillLevelEnum.Intermediate, Priority = 2 },
+                };
 
                 #endregion
 
