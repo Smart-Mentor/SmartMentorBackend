@@ -10,6 +10,8 @@ namespace SmartMentor.Abstraction.Dto.Responses.GapAnalysisResponse
 
         public List<SkillGapItem> WeakSkills { get; set; } = new List<SkillGapItem>();
 
+        public StatusOfTheGapAnalysis statusOfTheGapAnalysis { get; set; }
+
 
     }
 
@@ -20,5 +22,13 @@ namespace SmartMentor.Abstraction.Dto.Responses.GapAnalysisResponse
         public SkillLevelEnum RequiredLevel { get; set; }
         public SkillLevelEnum? CurrentLevel { get; set; }
         
+    }
+    public class StatusOfTheGapAnalysis
+    {
+        public Decimal completionPercentage { get; set; }
+        public int readyCount {  get; set; }
+        public int weakcount { get; set; }
+        public  int missingcount { get; set; }
+        public string readinessLevel {  get; set; }
     }
 }

@@ -6,6 +6,7 @@ using SmartMentor.Abstraction.Dto.Requests.UserRequests;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Domain.Entiies;
+using SmartMentor.Domain.Enums;
 using SmartMentor.Persistence.Identity;
 
 namespace SmartMentor.Application.Implementations.CompleteUserProfileService
@@ -195,6 +196,50 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 _logger.LogError(ex, "An error occurred while updating profile for user {UserId}", userId);
                 return Result.Fail("An unexpected error occurred while updating profile.");
             }
+        }
+
+        public async Task<Result<string>> updateSkillLevel(Guid userId, int skillId, CancellationToken cancellationToken = default)
+        {
+            // 1. Verify User
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return Result.Fail<string>($"User not found.");
+
+            // 2. Get the "Target" level from the Career Goal
+            var careerGoalSkill = (await _unitOfWork.Repository<CareerGoalRequiredSkill>()
+                .FindAsync(cgrs => cgrs.SkillId == skillId && cgrs.CareerGoalId == user.CareerGoalId, cancellationToken))
+                .FirstOrDefault();
+
+            if (careerGoalSkill == null)
+            {
+                return Result.Fail<string>("This skill is not required for your current career goal.");
+            }
+
+            // 3. Check if User already possesses this skill
+            var userSkill = (await _unitOfWork.Repository<UserSkills>()
+                .FindAsync(us => us.UserId == userId && us.SkillId == skillId, cancellationToken))
+                .FirstOrDefault();
+
+            if (userSkill == null)
+            {
+                // 4. ADD logic: If they don't have it, create the link
+                var newSkill = new UserSkills
+                {
+                    UserId = userId,
+                    SkillId = skillId,
+                    SkillLevel = SkillLevelEnum.Intermediate // Your default logic
+                };
+                await _unitOfWork.Repository<UserSkills>().AddAsync(newSkill, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return Result.Ok(newSkill.SkillLevel.ToString());
+            }
+
+            // 5. UPDATE logic: If they have it, update to the required level
+            userSkill.SkillLevel = careerGoalSkill.RequiredLevel;
+            _unitOfWork.Repository<UserSkills>().Update(userSkill);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Ok(userSkill.SkillLevel.ToString());
         }
     }
 }
