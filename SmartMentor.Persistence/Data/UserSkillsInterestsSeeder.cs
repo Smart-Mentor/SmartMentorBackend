@@ -14,78 +14,208 @@ namespace SmartMentor.Persistence.Data
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+
         public async Task SeedUserSkillsAndInterestsAsync()
         {
             try
             {
-               // Check if there are any user skills or interests already seeded
                 var existingUserSkills = await _unitOfWork.Repository<Skill>().GetAllAsync();
                 var existingUserInterests = await _unitOfWork.Repository<Interests>().GetAllAsync();
-                var careerGoals = await _unitOfWork.Repository<CareerGoal>().GetAllAsync();
-                if (existingUserSkills.Any() || existingUserInterests.Any()||careerGoals.Any())
+                var existingCareerGoals = await _unitOfWork.Repository<CareerGoal>().GetAllAsync();
+
+                if (existingUserSkills.Any() || existingUserInterests.Any() || existingCareerGoals.Any())
                 {
-                    _logger.LogInformation("User skills ,careergoal and interests already exist. Skipping seeding.");
+                    _logger.LogInformation("User skills, career goals, and interests already exist. Skipping seeding.");
                     return;
                 }
 
-                // Seed user skills and interests here (you can customize this with actual data)
-                var Skills = new List<Skill>
+                #region Skills
+
+                var skills = new List<Skill>
                 {
-                    new Skill { Name = "C#", Category = "Programming" },
-                    new Skill { Name = "JavaScript", Category = "Programming" },
-                    new Skill { Name = "Project Management", Category = "Management" },
-                    new Skill { Name = "Data Analysis", Category = "Data Science" },
-                    new Skill { Name = "Machine Learning", Category = "Data Science" },
-                    new Skill { Name = "SqL", Category = "Database" },
-                    new Skill { Name = "C++", Category = "Programming" },
-                    new Skill { Name = "Html", Category = "Web Development" },
-                    new Skill { Name = "Css", Category = "Web Development" },
-                    new Skill { Name="Python", Category = "Programming" },   
-                    new Skill {Name="Docker",Category="DevOps"}                 // Add more user skills as needed
+                    new Skill { Name = "C#", Category = "Backend Development" },
+                    new Skill { Name = "ASP.NET Core Web API", Category = "Backend Development" },
+                    new Skill { Name = "Entity Framework Core", Category = "Backend Development" },
+                    new Skill { Name = "LINQ Queries", Category = "Backend Development" },
+                    new Skill { Name = "RESTful API Design", Category = "Backend Development" },
+                    new Skill { Name = "Dependency Injection", Category = "Backend Development" },
+
+                    new Skill { Name = "HTML5", Category = "Frontend Development" },
+                    new Skill { Name = "CSS3", Category = "Frontend Development" },
+                    new Skill { Name = "JavaScript ES6+", Category = "Frontend Development" },
+                    new Skill { Name = "React.js Fundamentals", Category = "Frontend Development" },
+                    new Skill { Name = "Responsive Web Design", Category = "Frontend Development" },
+
+                    new Skill { Name = "SQL Server", Category = "Database" },
+                    new Skill { Name = "Database Normalization", Category = "Database" },
+                    new Skill { Name = "Writing Complex SQL Queries", Category = "Database" },
+                    new Skill { Name = "Stored Procedures", Category = "Database" },
+
+                    new Skill { Name = "Python Programming", Category = "Data Science" },
+                    new Skill { Name = "Data Analysis with Pandas", Category = "Data Science" },
+                    new Skill { Name = "Data Visualization", Category = "Data Science" },
+                    new Skill { Name = "Machine Learning Fundamentals", Category = "Artificial Intelligence" },
+
+                    new Skill { Name = "Docker Containers", Category = "DevOps" },
+                    new Skill { Name = "CI/CD Pipelines", Category = "DevOps" },
+                    new Skill { Name = "Azure Cloud Basics", Category = "Cloud Computing" },
+
+                    new Skill { Name = "OWASP Security Principles", Category = "Cybersecurity" },
+                    new Skill { Name = "Authentication & Authorization (JWT)", Category = "Cybersecurity" }
                 };
 
-                var Interests = new List<Interests>
+                #endregion
+
+
+                #region Interests
+
+                var interests = new List<Interests>
                 {
-                    new Interests { Name = "Web Development" },
-                    new Interests { Name = "Data Science" },
-                    new Interests { Name = "Mobile App Development" },
-                    new Interests { Name = "Cloud Computing" },
-                    new Interests { Name = "Cybersecurity" },
-                    new Interests { Name = "Artificial Intelligence" },
-                    new Interests { Name = "Game Development" },
-                    new Interests { Name = "DevOps" },
-                    new Interests { Name = "UI/UX Design" },
-                    new Interests { Name = "Blockchain" }
-                    // Add more user interests as needed
+                    new Interests { Name = "Backend Development with .NET" },
+                    new Interests { Name = "Frontend Web Development" },
+                    new Interests { Name = "Full-Stack Web Applications" },
+                    new Interests { Name = "Data Analytics and Visualization" },
+                    new Interests { Name = "Artificial Intelligence & Machine Learning" },
+                    new Interests { Name = "Cloud Computing (Azure)" },
+                    new Interests { Name = "DevOps & Automation" },
+                    new Interests { Name = "Cybersecurity & Ethical Hacking" }
                 };
-                var careerGoal =new List<CareerGoal>
+
+                #endregion
+
+
+                #region CareerGoals
+
+                var careerGoals = new List<CareerGoal>
                 {
-                    new CareerGoal { Name = "Become a Full-Stack Developer",Description="Aspire to master both frontend and backend technologies to build complete web applications." },
-                    new CareerGoal { Name = "Backend Developer",Description="Focus on server-side development, working with databases, APIs, and server logic to create robust applications." },
-                    new CareerGoal { Name = "Frontend Developer",Description="Specialize in creating engaging user interfaces and experiences using HTML, CSS, and JavaScript frameworks." },
-                    new CareerGoal { Name = "Transition to Data Science" ,Description="Aim to leverage programming skills to analyze data, build machine learning models, and derive insights for informed decision-making."},
-                    new CareerGoal { Name = "Software engineer" ,Description="Aspire to design, develop, and maintain software applications across various domains, utilizing programming skills to solve complex problems."},
-                    new CareerGoal { Name = "Data Analysist",Description="Focus on analyzing and interpreting data to help organizations make informed decisions, using programming skills to manipulate and visualize data effectively."},
-                    new CareerGoal { Name = "Specialize in Machine Learning",Description="Aim to develop expertise in machine learning algorithms and techniques, applying programming skills to build predictive models and intelligent systems."},
-                    new CareerGoal { Name = "Database Administrator",Description="Focus on managing and optimizing databases, ensuring data integrity, security, and performance for applications."},
-                    new CareerGoal { Name = "Game Developer" ,Description="Aspire to create interactive and immersive gaming experiences, utilizing programming skills to design game mechanics, graphics, and user interactions."},
-                    new CareerGoal { Name = "Cloud Solutions Architect",Description="Aim to design and implement cloud-based solutions, leveraging programming skills to build scalable and efficient applications in cloud environments."},
-                    new CareerGoal { Name = "Cybersecurity Specialist",Description="Focus on protecting systems and data from cyber threats, using programming skills to develop security measures and respond to incidents."},
-                    new CareerGoal { Name = "AI Researcher",Description="Aspire to conduct research in artificial intelligence, utilizing programming skills to develop and test new algorithms and models in the field of AI."}
-                     // Add more career goals as needed;
-                    // Add more career goals as needed;
+                    new CareerGoal
+                    {
+                        Name = "Junior Backend .NET Developer",
+                        Description = "Build and maintain RESTful APIs using ASP.NET Core and SQL Server."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Full-Stack .NET Developer",
+                        Description = "Develop complete web applications using ASP.NET Core and React.js."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Frontend React Developer",
+                        Description = "Create responsive and interactive user interfaces using React and modern JavaScript."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Data Analyst",
+                        Description = "Analyze datasets, generate insights, and build dashboards using Python and SQL."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Machine Learning Engineer",
+                        Description = "Develop predictive models and AI solutions using Python and ML frameworks."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Cloud Engineer (Azure)",
+                        Description = "Design and deploy scalable applications on Microsoft Azure."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "DevOps Engineer",
+                        Description = "Automate deployments and manage CI/CD pipelines using Docker and cloud tools."
+                    },
+
+                    new CareerGoal
+                    {
+                        Name = "Cybersecurity Analyst",
+                        Description = "Secure applications and infrastructure by applying modern security practices."
+                    }
                 };
-           
-                await _unitOfWork.Repository<Skill>().AddRangeAsync(Skills,cancellationToken: default);
-                
-                await _unitOfWork.Repository<Interests>().AddRangeAsync(Interests,cancellationToken: default);
-                
-                await _unitOfWork.Repository<CareerGoal>().AddRangeAsync(careerGoal,cancellationToken: default);
-               
+
+                #endregion
+
+
+                await _unitOfWork.Repository<Skill>().AddRangeAsync(skills);
+                await _unitOfWork.Repository<Interests>().AddRangeAsync(interests);
+                await _unitOfWork.Repository<CareerGoal>().AddRangeAsync(careerGoals);
+
                 await _unitOfWork.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully seeded user skills ,carrer goals and interests.");
-                
+
+                #region CareerGoalSkillMappings
+
+
+                var allSkills = await _unitOfWork.Repository<Skill>().GetAllAsync();
+                var allGoals = await _unitOfWork.Repository<CareerGoal>().GetAllAsync();
+
+                Skill GetSkill(string name) => allSkills.First(s => s.Name == name);
+                CareerGoal GetGoal(string name) => allGoals.First(g => g.Name == name);
+
+                var mappings = new List<CareerGoalRequiredSkill>
+            {
+                // Junior Backend .NET Developer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("C#").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("Entity Framework Core").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("SQL Server").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Junior Backend .NET Developer").Id, SkillId = GetSkill("RESTful API Design").Id },
+
+                // Full-Stack .NET Developer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("C#").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("ASP.NET Core Web API").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("SQL Server").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("HTML5").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Full-Stack .NET Developer").Id, SkillId = GetSkill("CSS3").Id },
+
+                // Frontend React Developer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("React.js Fundamentals").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("JavaScript ES6+").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("HTML5").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("CSS3").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Frontend React Developer").Id, SkillId = GetSkill("Responsive Web Design").Id },
+
+                // Data Analyst
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Python Programming").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Analysis with Pandas").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Data Visualization").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Data Analyst").Id, SkillId = GetSkill("Writing Complex SQL Queries").Id },
+
+                // Machine Learning Engineer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Python Programming").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Machine Learning Fundamentals").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Machine Learning Engineer").Id, SkillId = GetSkill("Data Analysis with Pandas").Id },
+
+                // Cloud Engineer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Azure Cloud Basics").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("Docker Containers").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cloud Engineer (Azure)").Id, SkillId = GetSkill("CI/CD Pipelines").Id },
+
+                // DevOps Engineer
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Docker Containers").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("CI/CD Pipelines").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("DevOps Engineer").Id, SkillId = GetSkill("Azure Cloud Basics").Id },
+
+                // Cybersecurity Analyst
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("OWASP Security Principles").Id },
+                new CareerGoalRequiredSkill { CareerGoalId = GetGoal("Cybersecurity Analyst").Id, SkillId = GetSkill("Authentication & Authorization (JWT)").Id },
+            };
+
+                #endregion
+
+
+                await _unitOfWork.Repository<CareerGoalRequiredSkill>()
+                    .AddRangeAsync(mappings);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully seeded skills, interests, career goals, and goal-skill mappings.");
             }
             catch (Exception ex)
             {
