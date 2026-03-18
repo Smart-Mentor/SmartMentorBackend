@@ -94,7 +94,7 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                     
                 }
                 var totalRequiredSkills = response.ReadySkills.Count + response.MissingSkills.Count + response.WeakSkills.Count;
-                var completionPercentage = totalRequiredSkills > 0 ? (response.ReadySkills.Count / totalRequiredSkills)*100 : 0;
+                var completionPercentage = (response.ReadySkills.Count / (double)totalRequiredSkills) * 100;
                 // Compute the readiness level based on the completion percentage
                 var readinessLevel = GetReadinessLevel(completionPercentage);
                 return new GapAnalysisResponse
@@ -124,7 +124,7 @@ namespace SmartMentor.Application.Implementations.GapAnalysisService
                 throw;
             }
         }
-        public string GetReadinessLevel(int completionPercentage)
+        public string GetReadinessLevel(double completionPercentage)
         {
             string readinessLevel;
                 if(completionPercentage == 100)

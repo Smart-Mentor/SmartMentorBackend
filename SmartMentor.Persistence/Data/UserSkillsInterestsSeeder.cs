@@ -24,11 +24,11 @@ namespace SmartMentor.Persistence.Data
                 var existingUserInterests = await _unitOfWork.Repository<Interests>().GetAllAsync();
                 var existingCareerGoals = await _unitOfWork.Repository<CareerGoal>().GetAllAsync();
 
-                //if (existingUserSkills.Any() || existingUserInterests.Any() || existingCareerGoals.Any())
-                //{
-                //    _logger.LogInformation("User skills, career goals, and interests already exist. Skipping seeding.");
-                //    return;
-                //}
+                if (existingUserSkills.Any() || existingUserInterests.Any() || existingCareerGoals.Any())
+                {
+                    _logger.LogInformation("Skills, interests, or career goals already exist in the database. Skipping seeding.");
+                    return;
+                }
 
                 #region Skills
 
