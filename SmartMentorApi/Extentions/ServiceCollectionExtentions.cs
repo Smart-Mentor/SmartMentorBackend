@@ -217,7 +217,7 @@ namespace SmartMentorApi.Extentions
                         QueueLimit = 0
                     });
                 });
-                options.OnRejected = async (context) =>
+                options.OnRejected = async (context,CancellationToken) =>
                 {
                     context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                     await context.HttpContext.Response.WriteAsJsonAsync(new
