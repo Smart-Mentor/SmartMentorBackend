@@ -8,9 +8,12 @@ using Serilog;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
+using SmartMentor.Abstraction.Services.EmailSenderService;
 using SmartMentor.Abstraction.Services.GapAnalysisService;
 using SmartMentor.Application.Implementations.AuthenticationService;
+using SmartMentor.Application.Implementations.AuthenticationService.EmailVerficationService;
 using SmartMentor.Application.Implementations.CompleteUserProfileService;
+using SmartMentor.Application.Implementations.EmailSenderService;
 using SmartMentor.Application.Implementations.GapAnalysisService;
 using SmartMentor.Persistence.Data;
 using SmartMentor.Persistence.Identity;
@@ -30,6 +33,8 @@ namespace SmartMentorApi.Extentions
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IGapAnalysisService, GapAnalysisService>();
+            services.AddScoped<IEmailSenderService, SmtpEmailSender>();
+            services.AddScoped<IEmailVerificationService, EmailVerficationService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)

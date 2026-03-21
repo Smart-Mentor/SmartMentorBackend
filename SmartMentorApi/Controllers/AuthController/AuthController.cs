@@ -6,6 +6,7 @@ using Serilog;
 using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
+using SmartMentor.Abstraction.Services.EmailSenderService;
 
 namespace SmartMentorApi.Controllers.AuthController
 {
@@ -15,11 +16,17 @@ namespace SmartMentorApi.Controllers.AuthController
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IEmailVerificationService _emailVerificationService;
 
-        public AuthController(IAuthService authService,ILogger<AuthController> logger)
+        public AuthController(IAuthService authService,
+        ILogger<AuthController> logger,
+        IEmailVerificationService emailVerificationService
+        
+        )
         {
             _authService = authService;
             _logger = logger;
+           _emailVerificationService = emailVerificationService;
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] loginRequest request)
@@ -92,6 +99,42 @@ namespace SmartMentorApi.Controllers.AuthController
             {
                 Log.Error("Error fetching profile: {Message}", ex.Message);
                 return StatusCode(500, "An error occurred while fetching the profile.");
+            }
+        }
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody]VerifiyEmailRequest request)
+        {
+            try
+            {
+                var result = await _emailVerificationService.VerifyCodeAsync(request.VerificationToken, request.Code);
+                if (result)
+                {
+                    return Ok(new { Message = "Email verified successfully." });
+                }
+                else
+                {
+                    return BadRequest(new { Message = "Invalid or expired verification code." });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during email verification: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred during email verification.");
+            
+            }
+        }
+        [HttpPost("resend-verification-code/{verficationtoken}")]
+        public async Task<IActionResult> ResendVerificationCode([FromRoute]Guid verficationtoken)
+        {
+            try
+            {
+               var result= await _emailVerificationService.resendVerificationCodeAsync(verficationtoken);
+                return Ok(new { Message = result });
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during verification code resend: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred while resending the verification code.");
             }
         }
     }

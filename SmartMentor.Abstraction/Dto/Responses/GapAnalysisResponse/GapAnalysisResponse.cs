@@ -25,7 +25,7 @@ namespace SmartMentor.Abstraction.Dto.Responses.GapAnalysisResponse
     }
     public class StatusOfTheGapAnalysis
     {
-        public Decimal completionPercentage { get; set; }
+        public double completionPercentage { get; set; }
         public int readyCount {  get; set; }
         public int weakcount { get; set; }
         public  int missingcount { get; set; }

@@ -6,7 +6,10 @@ using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
+using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
+using SmartMentor.Abstraction.Services.EmailSenderService;
+using SmartMentor.Domain.Entiies;
 using SmartMentor.Persistence.Identity;
 namespace SmartMentor.Application.Implementations.AuthenticationService
 {
@@ -18,21 +21,26 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         private readonly ILogger<AuthService> _logger;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IJwtTokenService _jwtToken;
+        private readonly IEmailVerificationService _emailVerificationService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthService(UserManager<ApplicationUser>userManger,
             RoleManager<ApplicationRole> roleManager,
             ILogger<AuthService>logger,
             SignInManager<ApplicationUser>signInManager,
             IJwtTokenService jwtToken,
-            IHttpContextAccessor httpContextAccessor
-            
+            IEmailVerificationService emailVerificationService,
+            IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork unitOfWork
             )
         {
             _userManger = userManger;
             _roleManager = roleManager;
             _logger = logger;
             _signInManager = signInManager;
-            _jwtToken = jwtToken;    
+            _jwtToken = jwtToken;
+            _emailVerificationService = emailVerificationService;
+           _unitOfWork = unitOfWork;
         }
 
         public async Task<string> ChangePasswordAsync(ChangePasswordRequest request,string UserId)
@@ -124,6 +132,11 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     _logger.LogDebug("There is no account with that email");
                     return new AuthResponse ( IsSuccessful : false, Message : "Invalid email or password" );
                 }
+                if(user.EmailConfirmed == false)
+                {
+                    _logger.LogWarning("Login failed - email not confirmed for user: {UserId}", user.Id);
+                    return new AuthResponse ( IsSuccessful : false, Message : "Email not confirmed. Please verify your email before logging in." );
+                }
 
                 var res = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
                 if (!res.Succeeded)
@@ -171,7 +184,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 Email = request.Email,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                EmailConfirmed=true,
+                EmailConfirmed=false,
                 NormalizedEmail=request.Email,
                 PhoneNumber=request.PhoneNumber
             };
@@ -193,11 +206,15 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             {
                 _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", request.Role,  request.Email);
             }
+            // create the temp Verfication token and save it to the database 
+            var verficationtoken =Guid.NewGuid();
 
             _logger.LogInformation("User created a new account with password.");
+            await _emailVerificationService.SendVerificationCodeAsync(verficationtoken, newUser.Id);
             return new AuthResponse(
                 IsSuccessful: true,
-                 Message: "User registered successfully",
+                 Message: "User registered successfully, verification code sent to email",
+                 verficationtoken = verficationtoken,
                  User: new UserResponse(
                     UserId: newUser.Id,
                     FirstName: newUser.FirstName,
@@ -205,7 +222,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     Email: newUser.Email,
                     Role: request.Role,
                     IsSuccessful: true,
-                    Message: "User registered successfully"
+                    Message: "User registered successfully, verification code sent to email"
                  ));
             }
             catch (Exception ex)
