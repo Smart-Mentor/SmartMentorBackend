@@ -25,68 +25,124 @@ namespace SmartMentor.Application.Implementations.AuthenticationService.EmailVer
             _unitOfWork = unitOfWork;
             _emailSenderService = emailSenderService;
         }
-        public async Task SendVerificationCodeAsync(Guid userId)
+
+        public async Task<string> resendVerificationCodeAsync(Guid verficationtoken)
         {
-            // i need to save the code in the database with the user id and expiration date
-            // then i need to send the code to the user's email
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null || string.IsNullOrWhiteSpace(user.Email))
+            var record = await _unitOfWork.Repository<EmailVerificationCodes>()
+            .FindAsync(ev => ev.VerficationToken == verficationtoken);
+            var entity = record.FirstOrDefault();
+
+            var user = await _userManager.FindByIdAsync(entity.UserId.ToString());
+
+            if(user.EmailConfirmed)
             {
-                throw new InvalidOperationException("User or user email not found while sending verification code.");
+                _logger.LogInformation($"User with userId: {user.Id} already verified their email, no need to resend code.");
+                return "Email already verified, no need to resend code.";
             }
 
-            var code = GenerateVerificationCode();
-            _logger.LogInformation($"Generated verification code: ***** for userId: {userId}");
-            // Save the code to the database
-            var emailVerificationCode = new EmailVerificationCodes
+            if (entity == null)
             {
-                Code = code,
-                ExpirationDate = DateTime.UtcNow.AddMinutes(10), // Code expires in 10 minutes
-                IsUsed = false,
-                CreatedAt = DateTime.UtcNow,
-                UserId = userId
-            };
+                _logger.LogWarning($"Resend verification code failed: No matching record found for verficationtoken: {verficationtoken}");
+                throw new Exception("Invalid verification token.");
+            }
 
-            await _unitOfWork.Repository<EmailVerificationCodes>().AddAsync(emailVerificationCode);
+            entity.Code = GenerateVerificationCode();
+            entity.ExpirationDate = DateTime.UtcNow.AddMinutes(10);
+            entity.IsUsed = false;
+            entity.CreatedAt = DateTime.UtcNow;
+            
+            _unitOfWork.Repository<EmailVerificationCodes>().Update(entity);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation($"Saved verification code to database for userId: {userId}");
-            await _emailSenderService.SendEmailAsync(
-                user.Email,
-                "SmartMentor email verification code",
-                $"Your verification code is: {code}. It will expire in 10 minutes.");
-            _logger.LogInformation("Verification email sent to userId: {UserId}", userId);
+
+            if (user != null)
+            {
+                await _emailSenderService.SendEmailAsync(
+                    user.Email,
+                    "SmartMentor email verification code",
+                    $"Your new verification code is: {entity.Code}. It will expire in 10 minutes.");
+                _logger.LogInformation("Verification email resent to userId: {UserId}", user.Id);
+                     return "Verification code resent successfully.";
+            }else
+            {
+                _logger.LogWarning($"Resend verification code failed: No user found for userId: {entity.UserId}");
+                throw new Exception("User not found.");
+            }
 
         }
-        public async Task<bool> VerifyCodeAsync(Guid userId, string code)
+        public async Task SendVerificationCodeAsync(Guid verficationtoken,Guid userId)
+        {
+           var code = GenerateVerificationCode();
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+             if(user == null)
+            {
+                _logger.LogWarning($"Send verification code failed: No user found for userId: {userId}");
+                throw new Exception("User not found.");
+            }
+             if(user.EmailConfirmed)
+            {
+                _logger.LogInformation($"User with userId: {user.Id} already verified their email, no need to send code.");
+                throw new Exception("Email already verified, no need to send code.");
+            }
+            // 1. Map everything to the entity at once
+            var verificationRecord = new EmailVerificationCodes
+            {
+                VerficationToken = verficationtoken,
+                UserId = userId, // Ensure this property exists in your entity!
+                Code = code,
+                ExpirationDate = DateTime.UtcNow.AddMinutes(10),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // 2. Save once
+            await _unitOfWork.Repository<EmailVerificationCodes>().AddAsync(verificationRecord);
+            await _unitOfWork.SaveChangesAsync();
+
+            // 3. Send the email
+            _logger.LogInformation("Saved verification code for userId: {UserId}", user.Id);
+            
+            await _emailSenderService.SendEmailAsync(
+                user.Email,
+                "SmartMentor Email Verification Code",
+                $"Your verification code is: {code}. It will expire in 10 minutes.");
+
+            _logger.LogInformation("Verification email sent to: {Email}", user.Email);
+
+        }
+        public async Task<bool> VerifyCodeAsync(Guid verficationtoken, string code)
         {
             // i need to check if the code is valid and not expired and not used
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)            {
-                _logger.LogWarning($"Verification failed: User not found for userId: {userId}");
+            var emailVerificationCodes = await _unitOfWork.Repository<EmailVerificationCodes>()
+                .FindAsync(ev => ev.VerficationToken == verficationtoken && ev.Code == code && !ev.IsUsed);
+            var emailVerificationCode = emailVerificationCodes.FirstOrDefault();
+            if (emailVerificationCode == null)
+            {
+                _logger.LogWarning($"Verification failed: No matching code found for verficationtoken: {verficationtoken}");
                 return false;
             }
-            var verificationCodes = await _unitOfWork.Repository<EmailVerificationCodes>()
-                .FindAsync(ev => ev.UserId == userId && ev.Code == code && !ev.IsUsed);
-            var verificationCode = verificationCodes.FirstOrDefault();
-
-            if (verificationCode == null)
+            if(emailVerificationCode.IsUsed)
             {
-                _logger.LogWarning($"Verification failed: No matching code found for userId: {userId}");
+                _logger.LogWarning($"Verification failed: Code already used for verficationtoken: {verficationtoken}");
                 return false;
             }
             // Check if the code is expired
-            if (verificationCode.ExpirationDate < DateTime.UtcNow)
+            if (emailVerificationCode.ExpirationDate < DateTime.UtcNow)
             {
-                _logger.LogWarning($"Verification failed: Code expired for userId: {userId}");
+                _logger.LogWarning($"Verification failed: Code expired for verficationtoken: {verficationtoken}");
                 return false;
             }
 
-            verificationCode.IsUsed = true;
-            user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
-            _unitOfWork.Repository<EmailVerificationCodes>().Update(verificationCode);
+            emailVerificationCode.IsUsed = true;
+            // Note: You'll need to fetch the user object to update their email confirmation status
+            var user = await _userManager.FindByIdAsync(emailVerificationCode.UserId.ToString());
+            if (user != null)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+            _unitOfWork.Repository<EmailVerificationCodes>().Update(emailVerificationCode);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Verification succeeded for userId: {UserId}", userId);
+            _logger.LogInformation("Verification succeeded for userId: {UserId}",user.Id);
 
             return true;
 

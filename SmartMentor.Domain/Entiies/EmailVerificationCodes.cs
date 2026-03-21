@@ -17,5 +17,6 @@ namespace SmartMentor.Domain.Entiies
         // foreign key
         public Guid UserId { get; set; }
         public ApplicationUser User { get; set; }
+        public Guid VerficationToken { get; set; }
     }
 }

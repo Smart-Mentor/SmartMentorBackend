@@ -102,17 +102,11 @@ namespace SmartMentorApi.Controllers.AuthController
             }
         }
         [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmail(string code)
+        public async Task<IActionResult> VerifyEmail([FromBody]VerifiyEmailRequest request)
         {
             try
             {
-                var userId = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (userId == null)
-                {
-                    return Unauthorized("User ID not found in token.");
-                }
-                _logger.LogInformation("Email verification attempt for user ID: {UserId}", userId);
-                var result = await _emailVerificationService.VerifyCodeAsync(Guid.Parse(userId), code);
+                var result = await _emailVerificationService.VerifyCodeAsync(request.VerificationToken, request.Code);
                 if (result)
                 {
                     return Ok(new { Message = "Email verified successfully." });
@@ -129,19 +123,13 @@ namespace SmartMentorApi.Controllers.AuthController
             
             }
         }
-        [HttpPost("resend-verification-code")]
-        public async Task<IActionResult> ResendVerificationCode()
+        [HttpPost("resend-verification-code/{verficationtoken}")]
+        public async Task<IActionResult> ResendVerificationCode([FromRoute]Guid verficationtoken)
         {
             try
             {
-                var userId = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (userId == null)
-                {
-                    return Unauthorized("User ID not found in token.");
-                }
-                _logger.LogInformation("Resending verification code for user ID: {UserId}", userId);
-                await _emailVerificationService.SendVerificationCodeAsync(Guid.Parse(userId));
-                return Ok(new { Message = "Verification code resent successfully." });
+               var result= await _emailVerificationService.resendVerificationCodeAsync(verficationtoken);
+                return Ok(new { Message = result });
             }
             catch (Exception ex)
             {

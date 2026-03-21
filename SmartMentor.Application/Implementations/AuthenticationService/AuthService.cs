@@ -6,8 +6,10 @@ using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
 using SmartMentor.Abstraction.Dto.Responses.AuthService;
+using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 using SmartMentor.Abstraction.Services.EmailSenderService;
+using SmartMentor.Domain.Entiies;
 using SmartMentor.Persistence.Identity;
 namespace SmartMentor.Application.Implementations.AuthenticationService
 {
@@ -20,6 +22,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IJwtTokenService _jwtToken;
         private readonly IEmailVerificationService _emailVerificationService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public AuthService(UserManager<ApplicationUser>userManger,
             RoleManager<ApplicationRole> roleManager,
@@ -27,8 +30,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             SignInManager<ApplicationUser>signInManager,
             IJwtTokenService jwtToken,
             IEmailVerificationService emailVerificationService,
-            IHttpContextAccessor httpContextAccessor
-            
+            IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork unitOfWork
             )
         {
             _userManger = userManger;
@@ -37,6 +40,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             _signInManager = signInManager;
             _jwtToken = jwtToken;
             _emailVerificationService = emailVerificationService;
+           _unitOfWork = unitOfWork;
         }
 
         public async Task<string> ChangePasswordAsync(ChangePasswordRequest request,string UserId)
@@ -202,12 +206,15 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             {
                 _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", request.Role,  request.Email);
             }
+            // create the temp Verfication token and save it to the database 
+            var verficationtoken =Guid.NewGuid();
 
             _logger.LogInformation("User created a new account with password.");
-            await _emailVerificationService.SendVerificationCodeAsync(newUser.Id);
+            await _emailVerificationService.SendVerificationCodeAsync(verficationtoken, newUser.Id);
             return new AuthResponse(
                 IsSuccessful: true,
                  Message: "User registered successfully, verification code sent to email",
+                 verficationtoken = verficationtoken,
                  User: new UserResponse(
                     UserId: newUser.Id,
                     FirstName: newUser.FirstName,
