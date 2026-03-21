@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
@@ -43,6 +44,7 @@ namespace SmartMentorApi.Controllers.AuthController
             }
      
         }
+        [ValidateAntiForgeryToken]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -80,6 +82,7 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred during password change.");
             }
         }
+        [ValidateAntiForgeryToken]
         [HttpGet("me")]
         [Authorize(Roles = "Student,Mentor,Admin")]
         public async Task<IActionResult> GetMyProfile()
@@ -101,6 +104,8 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred while fetching the profile.");
             }
         }
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("VerificationPolicy")]
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody]VerifiyEmailRequest request)
         {
@@ -123,12 +128,14 @@ namespace SmartMentorApi.Controllers.AuthController
             
             }
         }
-        [HttpPost("resend-verification-code/{verficationtoken}")]
-        public async Task<IActionResult> ResendVerificationCode([FromRoute]Guid verficationtoken)
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("VerificationPolicy")]
+        [HttpPost("resend-verification-code/{verificationToken}")]
+        public async Task<IActionResult> ResendVerificationCode([FromRoute]Guid verificationToken)
         {
             try
             {
-               var result= await _emailVerificationService.resendVerificationCodeAsync(verficationtoken);
+               var result= await _emailVerificationService.resendVerificationCodeAsync(verificationToken);
                 return Ok(new { Message = result });
             }
             catch (Exception ex)
