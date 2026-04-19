@@ -30,6 +30,7 @@ namespace SmartMentorApi
             services.AddTransient<UserSkillsInterestsSeeder>();
             services.AddTransient<CareerGoalRequiredSkillSeeder>();
             services.RegisterServices();
+            services.AddApiRateLimiter();
             
             return builder;
         }

@@ -19,6 +19,7 @@ using SmartMentor.Persistence.Data;
 using SmartMentor.Persistence.Identity;
 using SmartMentor.Persistence.Repositories;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace SmartMentorApi.Extentions
 {
@@ -35,6 +36,7 @@ namespace SmartMentorApi.Extentions
             services.AddScoped<IGapAnalysisService, GapAnalysisService>();
             services.AddScoped<IEmailSenderService, SmtpEmailSender>();
             services.AddScoped<IEmailVerificationService, EmailVerficationService>();
+            services.AddScoped<IPasswordResetService, ResetPasswordService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)
@@ -195,6 +197,37 @@ namespace SmartMentorApi.Extentions
                 });
                 
                 
+            return services;
+        }
+        public static IServiceCollection AddApiRateLimiter(this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                options.AddPolicy("VerificationPolicy", context =>
+                {
+                   var token =context.Request.RouteValues["VerificationToken"]?.ToString();
+                    if (string.IsNullOrEmpty(token))
+                    {
+                       token=context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    }
+                    return RateLimitPartition.GetFixedWindowLimiter(token, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(15),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+                });
+                options.OnRejected = async (context,CancellationToken) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    await context.HttpContext.Response.WriteAsJsonAsync(new
+                    {
+                        Message = "Too many requests. Please try again later."
+                    });
+                };
+
+            });
             return services;
         }
 

@@ -26,6 +26,7 @@ namespace SmartMentorApi
                 app.ConfigScalar();
                 app.UseHttpsRedirection();
                 app.UseHsts();
+                app.UseRateLimiter();
                 app.UseRouting();
                 // app.UseLoggingMiddleware();
                 app.UseAuthentication();
