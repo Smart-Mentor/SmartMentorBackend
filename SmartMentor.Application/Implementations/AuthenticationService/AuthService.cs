@@ -23,6 +23,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         private readonly IJwtTokenService _jwtToken;
         private readonly IEmailVerificationService _emailVerificationService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPasswordResetService _passwordResetService;
 
         public AuthService(UserManager<ApplicationUser>userManger,
             RoleManager<ApplicationRole> roleManager,
@@ -31,7 +32,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             IJwtTokenService jwtToken,
             IEmailVerificationService emailVerificationService,
             IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork unitOfWork
+            IUnitOfWork unitOfWork,
+            IPasswordResetService passwordResetService
             )
         {
             _userManger = userManger;
@@ -41,6 +43,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
             _jwtToken = jwtToken;
             _emailVerificationService = emailVerificationService;
            _unitOfWork = unitOfWork;
+           _passwordResetService = passwordResetService;
         }
 
         public async Task<string> ChangePasswordAsync(ChangePasswordRequest request,string UserId)
@@ -72,6 +75,39 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 return await Task.FromResult("An error occurred during password change");
             }
 
+        }
+
+        public async Task<ForgetPasswordDto> ForgetPasswordAsync(string email)
+        {
+            try
+            {
+                var existingEmail = await _userManger.FindByEmailAsync(email);
+                if(existingEmail == null)
+                {
+                    _logger.LogWarning("Password reset requested for non-existent email: {Email}", email);
+                     return new ForgetPasswordDto
+                    {
+                        message = "If an account with that email exists, a password reset code has been sent."
+                    };
+                }
+                var result = await _passwordResetService.SendResetCodeAsync(email);
+                if (result.IsSuccess)
+                {
+                    return new ForgetPasswordDto
+                    {
+                        message = "Password reset code sent to email successfully",
+                        resetToken = result.Value
+                    };
+                }
+
+                _logger.LogWarning("Failed to send password reset code to email: {Email}", email);
+                throw new Exception("Failed to send password reset code. Please try again later.");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while sending password reset code to email: {Email}", email);
+                throw new Exception("An error occurred while sending password reset code. Please try again later.");
+            }        
         }
 
         public async Task<MeResponse> GetProfileAsync(string UserId)
@@ -207,14 +243,14 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", request.Role,  request.Email);
             }
             // create the temp Verfication token and save it to the database 
-            var verficationtoken =Guid.NewGuid();
+            var verificationToken = Guid.NewGuid();
 
             _logger.LogInformation("User created a new account with password.");
-            await _emailVerificationService.SendVerificationCodeAsync(verficationtoken, newUser.Id);
+              await _emailVerificationService.SendVerificationCodeAsync(verificationToken, newUser.Id);
             return new AuthResponse(
                 IsSuccessful: true,
                  Message: "User registered successfully, verification code sent to email",
-                 verficationtoken = verficationtoken,
+                  VerificationToken: verificationToken,
                  User: new UserResponse(
                     UserId: newUser.Id,
                     FirstName: newUser.FirstName,

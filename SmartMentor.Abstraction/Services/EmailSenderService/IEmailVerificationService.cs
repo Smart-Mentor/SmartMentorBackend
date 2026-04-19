@@ -6,5 +6,6 @@ namespace SmartMentor.Abstraction.Services.EmailSenderService
         public Task<bool> VerifyCodeAsync(Guid verficationtoken, string code);
 
         public Task<string> resendVerificationCodeAsync(Guid verficationtoken);
+
     }
 }

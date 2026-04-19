@@ -18,16 +18,19 @@ namespace SmartMentorApi.Controllers.AuthController
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
         private readonly IEmailVerificationService _emailVerificationService;
+        private readonly IPasswordResetService _passwordResetService;
 
         public AuthController(IAuthService authService,
         ILogger<AuthController> logger,
-        IEmailVerificationService emailVerificationService
+          IEmailVerificationService emailVerificationService,
+          IPasswordResetService passwordResetService
         
         )
         {
             _authService = authService;
             _logger = logger;
            _emailVerificationService = emailVerificationService;
+              _passwordResetService = passwordResetService;
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] loginRequest request)
@@ -44,7 +47,6 @@ namespace SmartMentorApi.Controllers.AuthController
             }
      
         }
-        [ValidateAntiForgeryToken]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -61,6 +63,45 @@ namespace SmartMentorApi.Controllers.AuthController
             }
 
         }
+
+        [EnableRateLimiting("VerificationPolicy")]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgetPasswordRequest request)
+        {
+            try
+            {
+                var result = await _authService.ForgetPasswordAsync(request.Email);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during forgot password flow: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred while sending reset code.");
+            }
+        }
+
+        [EnableRateLimiting("VerificationPolicy")]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            try
+            {
+                var result = await _passwordResetService.ResetPasswordAsync(request);
+                if (result.IsSuccess)
+                {
+                    return Ok(new { Message = "Password reset successfully." });
+                }
+
+                var error = result.Errors.FirstOrDefault()?.Message ?? "Invalid reset request.";
+                return BadRequest(new { Message = error });
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during reset password flow: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred while resetting password.");
+            }
+        }
+
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody]ChangePasswordRequest request)
         {
@@ -82,7 +123,6 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred during password change.");
             }
         }
-        [ValidateAntiForgeryToken]
         [HttpGet("me")]
         [Authorize(Roles = "Student,Mentor,Admin")]
         public async Task<IActionResult> GetMyProfile()
@@ -104,7 +144,6 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred while fetching the profile.");
             }
         }
-        [ValidateAntiForgeryToken]
         [EnableRateLimiting("VerificationPolicy")]
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody]VerifiyEmailRequest request)
@@ -128,7 +167,6 @@ namespace SmartMentorApi.Controllers.AuthController
             
             }
         }
-        [ValidateAntiForgeryToken]
         [EnableRateLimiting("VerificationPolicy")]
         [HttpPost("resend-verification-code/{verificationToken}")]
         public async Task<IActionResult> ResendVerificationCode([FromRoute]Guid verificationToken)

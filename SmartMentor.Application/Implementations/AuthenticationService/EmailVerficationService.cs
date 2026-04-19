@@ -1,3 +1,4 @@
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Repositories;
@@ -46,7 +47,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService.EmailVer
                 throw new Exception("Invalid verification token.");
             }
 
-            entity.Code = GenerateVerificationCode();
+            entity.Code = GenerateCode();
             entity.ExpirationDate = DateTime.UtcNow.AddMinutes(10);
             entity.IsUsed = false;
             entity.CreatedAt = DateTime.UtcNow;
@@ -69,9 +70,11 @@ namespace SmartMentor.Application.Implementations.AuthenticationService.EmailVer
             }
 
         }
+
+    
         public async Task SendVerificationCodeAsync(Guid verficationtoken,Guid userId)
         {
-           var code = GenerateVerificationCode();
+           var code = GenerateCode();
             var user = await _userManager.FindByIdAsync(userId.ToString());
              if(user == null)
             {
@@ -147,12 +150,14 @@ namespace SmartMentor.Application.Implementations.AuthenticationService.EmailVer
             return true;
 
         }
-        private string GenerateVerificationCode()
+        public static string GenerateCode()
         {
             // Generate a random 6-digit code
             Random random = new Random();
             return random.Next(100000, 999999).ToString();
         }
 
+
+       
     }
 }

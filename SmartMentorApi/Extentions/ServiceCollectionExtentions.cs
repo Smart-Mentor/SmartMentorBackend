@@ -36,6 +36,7 @@ namespace SmartMentorApi.Extentions
             services.AddScoped<IGapAnalysisService, GapAnalysisService>();
             services.AddScoped<IEmailSenderService, SmtpEmailSender>();
             services.AddScoped<IEmailVerificationService, EmailVerficationService>();
+            services.AddScoped<IPasswordResetService, ResetPasswordService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)
