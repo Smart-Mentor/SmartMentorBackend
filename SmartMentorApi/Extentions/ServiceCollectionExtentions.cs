@@ -103,6 +103,12 @@ namespace SmartMentorApi.Extentions
                 app.UseDeveloperExceptionPage();
                 app.MapScalarApiReference();
             }
+            else
+            {
+                app.UseHsts();
+                app.UseExceptionHandler("/Error");
+                app.MapScalarApiReference();
+            }
         }
         public static IServiceCollection AddIdenttiyExtention(this IServiceCollection services)
         {
@@ -229,6 +235,19 @@ namespace SmartMentorApi.Extentions
 
             });
             return services;
+        }
+        public static WebApplicationBuilder EnableCors(this WebApplication app, WebApplicationBuilder builder)
+        {
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+           return builder;
         }
 
     }

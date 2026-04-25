@@ -28,6 +28,7 @@ namespace SmartMentorApi
                 app.UseHsts();
                 app.UseRateLimiter();
                 app.UseRouting();
+                app.EnableCors(builder);
                 // app.UseLoggingMiddleware();
                 app.UseAuthentication();
                 app.UseAuthorization();
