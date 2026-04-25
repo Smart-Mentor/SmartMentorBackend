@@ -236,9 +236,9 @@ namespace SmartMentorApi.Extentions
             });
             return services;
         }
-        public static WebApplicationBuilder EnableCors(this WebApplication app, WebApplicationBuilder builder)
+        public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
         {
-            builder.Services.AddCors(options =>
+            services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
@@ -247,7 +247,7 @@ namespace SmartMentorApi.Extentions
                           .AllowAnyHeader();
                 });
             });
-           return builder;
+           return services;
         }
 
     }

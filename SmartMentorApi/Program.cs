@@ -20,7 +20,7 @@ namespace SmartMentorApi
                 builder.AddServices();
                 
                 var app = builder.Build();
-
+                app.UseCors();
                 await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging(); 
                 app.ConfigScalar();
@@ -28,7 +28,6 @@ namespace SmartMentorApi
                 app.UseHsts();
                 app.UseRateLimiter();
                 app.UseRouting();
-                app.EnableCors(builder);
                 // app.UseLoggingMiddleware();
                 app.UseAuthentication();
                 app.UseAuthorization();
