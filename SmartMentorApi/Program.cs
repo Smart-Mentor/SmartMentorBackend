@@ -20,7 +20,7 @@ namespace SmartMentorApi
                 builder.AddServices();
                 
                 var app = builder.Build();
-
+                app.UseCors();
                 await app.SeedingIntialDataForRolesAndUsers();
                 app.UseSerilogRequestLogging(); 
                 app.ConfigScalar();

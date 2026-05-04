@@ -31,6 +31,7 @@ namespace SmartMentorApi
             services.AddTransient<CareerGoalRequiredSkillSeeder>();
             services.RegisterServices();
             services.AddApiRateLimiter();
+            services.AddCorsPolicy();
             
             return builder;
         }

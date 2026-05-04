@@ -6,10 +6,12 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
 using SmartMentor.Abstraction.Repositories;
+using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Abstraction.Services.EmailSenderService;
 using SmartMentor.Abstraction.Services.GapAnalysisService;
+using SmartMentor.Application.Implementations.AdminService;
 using SmartMentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Application.Implementations.AuthenticationService.EmailVerficationService;
 using SmartMentor.Application.Implementations.CompleteUserProfileService;
@@ -37,6 +39,7 @@ namespace SmartMentorApi.Extentions
             services.AddScoped<IEmailSenderService, SmtpEmailSender>();
             services.AddScoped<IEmailVerificationService, EmailVerficationService>();
             services.AddScoped<IPasswordResetService, ResetPasswordService>();
+            services.AddScoped<IAdminService, AdminService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)
@@ -101,6 +104,13 @@ namespace SmartMentorApi.Extentions
                 app.UseHsts();
                 app.MapOpenApi();
                 app.UseDeveloperExceptionPage();
+                app.MapScalarApiReference();
+            }
+            else
+            {
+                app.UseHsts();
+                app.MapOpenApi();
+                app.UseExceptionHandler("/Error");
                 app.MapScalarApiReference();
             }
         }
@@ -173,7 +183,7 @@ namespace SmartMentorApi.Extentions
                             OnTokenValidated = context =>
                             {
                                 Log.Debug("Token validated successfully");
-                                var claims = context.Principal.Claims.Select(c => $"{c.Type}={c.Value}");
+                                var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Enumerable.Empty<string>();
                                 Log.Information("Claims: {Claims}", string.Join(", ", claims));
                                 return Task.CompletedTask;
                             },
@@ -229,6 +239,19 @@ namespace SmartMentorApi.Extentions
 
             });
             return services;
+        }
+        public static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+           return services;
         }
 
     }

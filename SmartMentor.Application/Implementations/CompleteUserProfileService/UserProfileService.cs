@@ -44,7 +44,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 throw new Exception($"The following skill ids are invalid: {string.Join(", ", invalidSkillIds)}");
             }
             // validate the career goal id
-            var careerGoal = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync([request.CareerGoalId]);
+            var careerGoal = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync(new object[] { request.CareerGoalId });
             if (careerGoal == null)
             {
                 throw new Exception($"Career goal with Id {request.CareerGoalId} does not exist.");
@@ -80,7 +80,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 // i will use the unit of work to insert the user skills and interests in the database
                 await _unitOfWork.Repository<UserSkills>().AddRangeAsync(userSkills,cancellationToken);
                 await _unitOfWork.Repository<UserInterests>().AddRangeAsync(userInterests,cancellationToken);
-                var isCareerGoalExist = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync([request.CareerGoalId],cancellationToken);
+                var isCareerGoalExist = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync(new object[] { request.CareerGoalId },cancellationToken);
                 if (isCareerGoalExist == null)
                 {
                     _logger.LogError($"Career goal with Id {request.CareerGoalId} does not exist.");
