@@ -232,15 +232,14 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 _logger.LogWarning("User creation failed for email: {Email} with errors: {Errors}", request.Email, errors);
                 return new AuthResponse(IsSuccessful: false, Message: $"User creation failed: {errors}");
             }
-            var roleExists = await _roleManager.RoleExistsAsync(request.Role);
+            const string DefaultRole = "Student";
             // i want to assign role to the user Student or Mentor
-            if(roleExists)
+            if (await _roleManager.RoleExistsAsync(DefaultRole))
             {
-                _logger.LogInformation("Assigning role '{Role}' to user with email: {Email}", request.Role, request.Email);
-                await _userManger.AddToRoleAsync(newUser, request.Role);
+                await _userManger.AddToRoleAsync(newUser, DefaultRole);
             }else
             {
-                _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", request.Role,  request.Email);
+                _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", DefaultRole,  request.Email);
             }
             // create the temp Verfication token and save it to the database 
             var verificationToken = Guid.NewGuid();
@@ -256,7 +255,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     FirstName: newUser.FirstName,
                     LastName:  newUser.LastName,
                     Email: newUser.Email,
-                    Role: request.Role,
+                    Role: DefaultRole,
                     IsSuccessful: true,
                     Message: "User registered successfully, verification code sent to email"
                  ));
