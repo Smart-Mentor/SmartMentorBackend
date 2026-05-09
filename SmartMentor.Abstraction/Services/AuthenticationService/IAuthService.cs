@@ -2,12 +2,6 @@
 using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
-using SmartMentor.Abstraction.Dto.Responses.AuthService;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SmartMentor.Abstraction.Services.AuthenticationService
 {
@@ -15,7 +9,7 @@ namespace SmartMentor.Abstraction.Services.AuthenticationService
     {
         Task<AuthResponse> LoginAsync(loginRequest request);
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
-        Task<string> ChangePasswordAsync(ChangePasswordRequest request,string UserId);
+        Task<string> ChangePasswordAsync(ChangePasswordRequest request, string UserId);
         Task<MeResponse> GetProfileAsync(string userId);
         Task<ForgetPasswordDto> ForgetPasswordAsync(string email);
     }

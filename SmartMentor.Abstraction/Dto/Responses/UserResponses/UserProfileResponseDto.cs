@@ -10,11 +10,19 @@ namespace SmartMentor.Abstraction.Dto.Responses.UserResponse
     public class UserProfileResponseDto
     {
         public int CareerGoalId { get; set; }
+
         public string CareerGoalName { get; set; }
 
         public List<UserSkillDto> Skills { get; set; } = new();
 
         public List<UserInterestDto> Interests { get; set; } = new();
+
+        // Messages
+        public string? SkillsMessage { get; set; }
+
+        public string? InterestsMessage { get; set; }
+
+        public string? CareerGoalMessage { get; set; }
     }
 
     public class UserSkillDto
