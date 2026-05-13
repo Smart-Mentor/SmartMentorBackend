@@ -5,7 +5,7 @@ using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
-using SmartMentor.Abstraction.Dto.Responses.AuthService;
+using SmartMentor.Abstraction.Dto.Responses.UserResponse;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 using SmartMentor.Abstraction.Services.EmailSenderService;

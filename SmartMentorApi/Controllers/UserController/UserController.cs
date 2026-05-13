@@ -187,7 +187,7 @@ namespace SmartMentorApi.Controllers.UserController
             return BadRequest(new ErrorResponse
             {
                 Success = false,
-                Message = result.Errors.FirstOrDefault()?.Message,
+                Message = result.Errors.FirstOrDefault().Message ?? "Failed to retrieve user profile.",
                 ErrorCode = "PROFILE_002",
                 Errors = new List<ErrorDetail>()
             });

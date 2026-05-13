@@ -2,7 +2,7 @@
 using SmartMentor.Abstraction.Dto.Requests.AuthResponse;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Dto.Responses.AuthResponse;
-using SmartMentor.Abstraction.Dto.Responses.AuthService;
+using SmartMentor.Abstraction.Dto.Responses.UserResponse;
 using System;
 using System.Collections.Generic;
 using System.Linq;

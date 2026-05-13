@@ -249,8 +249,8 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
         /// 
 
         public async Task<Result<UserProfileResponseDto>> GetUserProfileAsync(
-    Guid userId,
-    CancellationToken cancellationToken = default)
+            Guid userId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
@@ -269,7 +269,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                     .FindAsync(
                         us => us.UserId == userId,
                         cancellationToken,
-                        includes: query => ((IQueryable<UserSkills>)query).Include(x => x.Skill)
+                        includes:x => x.Skill
                     );
 
                 // Get User Interests WITH Interest names
@@ -277,7 +277,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                     .FindAsync(
                         ui => ui.UserId == userId,
                         cancellationToken,
-                        includes: query => ((IQueryable<UserInterests>)query).Include(x => x.Interest)
+                        includes: x => x.Interest
                     );
 
                 var response = new UserProfileResponseDto
