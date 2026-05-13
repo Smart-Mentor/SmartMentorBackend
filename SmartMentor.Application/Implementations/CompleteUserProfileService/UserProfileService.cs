@@ -261,33 +261,43 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
 
                 if (user == null)
                 {
-                    return Result.Fail<UserProfileResponseDto>("User not found.");
+                    _logger.LogWarning("User with Id {UserId} was not found.", userId);
+
+                    return Result.Fail<UserProfileResponseDto>(
+                        $"User with Id {userId} was not found.");
                 }
 
-                // Get User Skills WITH Skill names
+                // Get User Skills + Skill Names
                 var userSkills = await _unitOfWork.Repository<UserSkills>()
                     .FindAsync(
                         us => us.UserId == userId,
                         cancellationToken,
-                        includes:x => x.Skill
+                        x => x.Skill
                     );
 
-                // Get User Interests WITH Interest names
+                // Get User Interests + Interest Names
                 var userInterests = await _unitOfWork.Repository<UserInterests>()
                     .FindAsync(
                         ui => ui.UserId == userId,
                         cancellationToken,
-                        includes: x => x.Interest
+                        x => x.Interest
                     );
 
+                // Build Response
                 var response = new UserProfileResponseDto
                 {
+                    // Career Goal
                     CareerGoalId = user.CareerGoalId ?? 0,
 
                     CareerGoalName = user.CareerGoal != null
                         ? user.CareerGoal.Name
                         : string.Empty,
 
+                    CareerGoalMessage = user.CareerGoal == null
+                        ? "User has not selected a career goal yet."
+                        : null,
+
+                    // Skills
                     Skills = userSkills.Select(s => new UserSkillDto
                     {
                         SkillId = s.SkillId,
@@ -300,6 +310,11 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
 
                     }).ToList(),
 
+                    SkillsMessage = !userSkills.Any()
+                        ? "User has not added any skills yet."
+                        : null,
+
+                    // Interests
                     Interests = userInterests.Select(i => new UserInterestDto
                     {
                         InterestId = i.InterestId,
@@ -308,15 +323,24 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                             ? i.Interest.Name
                             : string.Empty
 
-                    }).ToList()
+                    }).ToList(),
+
+                    InterestsMessage = !userInterests.Any()
+                        ? "User has not added any interests yet."
+                        : null
                 };
+
+                _logger.LogInformation(
+                    "User profile retrieved successfully for user {UserId}",
+                    userId);
 
                 return Result.Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error while retrieving profile for user {UserId}",
+                _logger.LogError(
+                    ex,
+                    "An error occurred while retrieving profile for user {UserId}",
                     userId);
 
                 return Result.Fail<UserProfileResponseDto>(

@@ -1,4 +1,5 @@
-﻿// SmartMentor.Abstraction/Dto/Responses/AuthResponse/AuthResponse.cs
+﻿
+
 namespace SmartMentor.Abstraction.Dto.Responses.AuthResponse
 {
     public record AuthResponse(
