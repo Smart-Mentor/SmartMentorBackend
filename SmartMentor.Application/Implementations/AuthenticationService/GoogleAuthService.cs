@@ -89,7 +89,10 @@ namespace smartmentor.Application.Implementations.AuthenticationService
                     Email = payload.Email,
                     FirstName = payload.GivenName ?? string.Empty,
                     LastName = payload.FamilyName ?? string.Empty,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    EmailVerifiedAt = DateTime.UtcNow,
+                    LastLoginAt = DateTime.UtcNow
                 };
 
                 var result = await _userManager.CreateAsync(user);
@@ -111,6 +114,8 @@ namespace smartmentor.Application.Implementations.AuthenticationService
             else
             {
                 _logger.LogInformation("User with email {Email} already exists. Proceeding with authentication.", payload.Email);
+                user.LastLoginAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
             }
 
             var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;

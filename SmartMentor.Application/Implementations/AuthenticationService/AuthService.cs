@@ -179,6 +179,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     _logger.LogWarning("Login failed - invalid password for user: {UserId}", user.Id);
                     return new AuthResponse(IsSuccessful: false, Message: "Invalid email or password");
                 }
+                user.LastLoginAt = DateTime.UtcNow;
+                await _userManger.UpdateAsync(user);
                 var token = await _jwtToken.GenerateTokenAsync(user);
 
                 return new AuthResponse(IsSuccessful: true,
@@ -221,7 +223,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     LastName = request.LastName,
                     EmailConfirmed = false,
                     NormalizedEmail = request.Email,
-                    PhoneNumber = request.PhoneNumber
+                    PhoneNumber = request.PhoneNumber,
+                    CreatedAt = DateTime.UtcNow
                 };
                 var result = await _userManger.CreateAsync(newUser, request.Password);
                 await _userManger.AddClaimAsync(newUser, new System.Security.Claims.Claim("FullName", request.FirstName + " " + request.LastName));

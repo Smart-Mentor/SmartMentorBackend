@@ -8,12 +8,14 @@ using Serilog;
 using smartmentor.abstraction.services.Authenticationservice;
 using smartmentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Abstraction.Repositories;
+using SmartMentor.Abstraction.Services.AdminAnalyticsService;
 using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Abstraction.Services.EmailSenderService;
 using SmartMentor.Abstraction.Services.GapAnalysisService;
 using SmartMentor.Application.Implementations.AdminService;
+using SmartMentor.Application.Implementations.AdminAnalyticsService;
 using SmartMentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Application.Implementations.AuthenticationService.EmailVerficationService;
 using SmartMentor.Application.Implementations.CompleteUserProfileService;
@@ -43,6 +45,7 @@ namespace SmartMentorApi.Extentions
             services.AddScoped<IEmailVerificationService, EmailVerficationService>();
             services.AddScoped<IPasswordResetService, ResetPasswordService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAdminAnalyticsService, AdminAnalyticsService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)

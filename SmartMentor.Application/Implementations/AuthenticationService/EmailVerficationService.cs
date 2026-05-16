@@ -141,6 +141,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService.EmailVer
             if (user != null)
             {
                 user.EmailConfirmed = true;
+                user.EmailVerifiedAt = DateTime.UtcNow;
                 await _userManager.UpdateAsync(user);
             }
             _unitOfWork.Repository<EmailVerificationCodes>().Update(emailVerificationCode);

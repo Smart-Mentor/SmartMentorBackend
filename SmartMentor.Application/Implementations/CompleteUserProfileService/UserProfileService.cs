@@ -91,6 +91,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 // assign the CarrerGoalId FK into the user table
                user.CareerGoalId = request.CareerGoalId;
                user.IsProfileCompleted = true;
+               user.ProfileCompletedAt = DateTime.UtcNow;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -176,6 +177,8 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 // Update career goal
                 // =========================
                 user.CareerGoalId = request.CareerGoalId;
+                user.IsProfileCompleted = true;
+                user.ProfileCompletedAt ??= DateTime.UtcNow;
 
                 var identityResult = await _userManager.UpdateAsync(user);
 
