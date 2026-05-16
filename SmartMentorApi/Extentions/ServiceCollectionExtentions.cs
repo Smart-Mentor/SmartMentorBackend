@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using smartmentor.abstraction.services.Authenticationservice;
+using smartmentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
@@ -31,6 +33,7 @@ namespace SmartMentorApi.Extentions
         {
             // Register application services here
             services.AddScoped<IAuthService , AuthService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

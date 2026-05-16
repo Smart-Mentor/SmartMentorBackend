@@ -6,6 +6,7 @@ using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Domain.Entiies;
 using SmartMentor.Persistence.Identity;
 using Microsoft.AspNetCore.Authorization;
+using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
 
 namespace SmartMentorApi.Controllers.AdminController
 {
@@ -39,6 +40,31 @@ namespace SmartMentorApi.Controllers.AdminController
                 return StatusCode(500, "An error occurred while retrieving users.");
             }
         }
+        [HttpGet("users/profile-summaries")]
+        public async Task<IActionResult> GetAllUsersProfileSummaries(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userProfileSummaries = await _adminService.GetAllUsersProfileSummariesAsync(cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User skills, interests, and career goal retrieved successfully.",
+                    Data = userProfileSummaries
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user profile summaries");
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving user profile summaries.",
+                    ErrorCode = "USER_500",
+                    Errors = new List<ErrorDetail>()
+                });
+            }
+        }
         [HttpGet("users/{userId}")]
         public async Task<IActionResult> GetUserById([FromRoute] Guid userId, CancellationToken cancellationToken)
         {
@@ -60,6 +86,67 @@ namespace SmartMentorApi.Controllers.AdminController
             {
                 _logger.LogError(ex, "Error retrieving user with id {UserId}", userId);
                 return StatusCode(500, "An error occurred while retrieving the user.");
+            }
+        }
+        [HttpGet("users/{userId}/profile-summary")]
+        public async Task<IActionResult> GetUserSkillsAndInterests([FromRoute] string userId, CancellationToken cancellationToken)
+        {
+            if (!Guid.TryParse(userId, out var parsedUserId))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Validation failed. The provided user id is not a valid GUID.",
+                    ErrorCode = "VALIDATION_002",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "userId",
+                            Message = "The userId route parameter must be a valid GUID."
+                        }
+                    }
+                });
+            }
+
+            try
+            {
+                var userProfileSummary = await _adminService.GetUserSkillsAndInterestsAsync(parsedUserId, cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User skills, interests, and career goal retrieved successfully.",
+                    Data = userProfileSummary
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "User with id {UserId} not found", parsedUserId);
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = $"User with id {parsedUserId} not found.",
+                    ErrorCode = "USER_404",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "userId",
+                            Message = $"No user exists with id {parsedUserId}."
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving skills and interests for user with id {UserId}", parsedUserId);
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving the user profile summary.",
+                    ErrorCode = "USER_500",
+                    Errors = new List<ErrorDetail>()
+                });
             }
         }
         [HttpDelete("users/{userId}")]
