@@ -106,7 +106,7 @@ namespace SmartMentorApi.Extentions
         }
         public static void ConfigScalar(this WebApplication app)
         {
-            Log.Information(" ConfigScalar started successfully!");
+            Log.Information("ConfigScalar started successfully!");
 
             if (app.Environment.IsDevelopment())
             {
