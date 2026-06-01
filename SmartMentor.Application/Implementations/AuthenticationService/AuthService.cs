@@ -207,50 +207,56 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
         {
             try
             {
-                // get the email from the request
-                _logger.LogInformation("Registration attempt for email: {Email}", request.Email);
-                var user = await _userManger.FindByEmailAsync(request.Email);
-                if (user != null)
-                {
-                    return new AuthResponse(IsSuccessful: false, Message: "Email is already registered");
-                }
-                _logger.LogInformation("Creating a new user account for email: {Email}", request.Email);
-                var newUser = new ApplicationUser
-                {
-                    UserName = request.Email,
-                    Email = request.Email,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    EmailConfirmed = false,
-                    NormalizedEmail = request.Email,
-                    PhoneNumber = request.PhoneNumber,
-                    CreatedAt = DateTime.UtcNow
-                };
-                var result = await _userManger.CreateAsync(newUser, request.Password);
-                await _userManger.AddClaimAsync(newUser, new System.Security.Claims.Claim("FullName", request.FirstName + " " + request.LastName));
-                if (!result.Succeeded)
-                {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    _logger.LogWarning("User creation failed for email: {Email} with errors: {Errors}", request.Email, errors);
-                    return new AuthResponse(IsSuccessful: false, Message: $"User creation failed: {errors}");
-                }
-                var roleExists = await _roleManager.RoleExistsAsync(request.Role);
-                // i want to assign role to the user Student or Mentor
-                if (roleExists)
-                {
-                    _logger.LogInformation("Assigning role '{Role}' to user with email: {Email}", request.Role, request.Email);
-                    await _userManger.AddToRoleAsync(newUser, request.Role);
-                }
-                else
-                {
-                    _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", request.Role, request.Email);
-                }
-                // create the temp Verfication token and save it to the database 
-                var verificationToken = Guid.NewGuid();
+             // get the email from the request
+            _logger.LogInformation("Registration attempt for email: {Email}", request.Email);
+            var user=await _userManger.FindByEmailAsync(request.Email);
+            if(user != null)
+            {
+                return new AuthResponse(IsSuccessful: false, Message: "Email is already registered");
+            }
+            _logger.LogInformation("Creating a new user account for email: {Email}", request.Email);
+            var newUser = new ApplicationUser
+            {
+                UserName = request.Email,
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                EmailConfirmed=false,
+                NormalizedEmail=request.Email,
+                PhoneNumber=request.PhoneNumber
+            };
+            var result = await _userManger.CreateAsync(newUser, request.Password);
+            await  _userManger.AddClaimAsync(newUser, new System.Security.Claims.Claim("FullName", request.FirstName + " " + request.LastName));
+            if(!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogWarning("User creation failed for email: {Email} with errors: {Errors}", request.Email, errors);
+                return new AuthResponse(IsSuccessful: false, Message: $"User creation failed: {errors}");
+            }
+            const string DefaultRole = "Student";
+            // i want to assign role to the user Student or Mentor
+            if (await _roleManager.RoleExistsAsync(DefaultRole))
+            {
+                await _userManger.AddToRoleAsync(newUser, DefaultRole);
+            }else
+            {
+                _logger.LogWarning("Role '{Role}' does not exist. Skipping role assignment for user with email: {Email}", DefaultRole,  request.Email);
+            }
+            // create the temp Verfication token and save it to the database 
+            var verificationToken = Guid.NewGuid();
 
-                _logger.LogInformation("User created a new account with password.");
-                await _emailVerificationService.SendVerificationCodeAsync(verificationToken, newUser.Id);
-                return new AuthResponse(
+            _logger.LogInformation("User created a new account with password.");
+              await _emailVerificationService.SendVerificationCodeAsync(verificationToken, newUser.Id);
+            return new AuthResponse(
+                IsSuccessful: true,
+                 Message: "User registered successfully, verification code sent to email",
+                  VerificationToken: verificationToken,
+                 User: new UserResponse(
+                    UserId: newUser.Id,
+                    FirstName: newUser.FirstName,
+                    LastName:  newUser.LastName,
+                    Email: newUser.Email,
+                    Role: DefaultRole,
                     IsSuccessful: true,
                      Message: "User registered successfully, verification code sent to email",
                       VerificationToken: verificationToken,
