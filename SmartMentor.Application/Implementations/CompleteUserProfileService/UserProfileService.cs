@@ -1,8 +1,10 @@
 ﻿using FluentResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Dto.Requests.UserRequests;
+using SmartMentor.Abstraction.Dto.Responses.UserResponse;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Domain.Entiies;
@@ -89,6 +91,7 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 // assign the CarrerGoalId FK into the user table
                user.CareerGoalId = request.CareerGoalId;
                user.IsProfileCompleted = true;
+               user.ProfileCompletedAt = DateTime.UtcNow;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -174,6 +177,8 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
                 // Update career goal
                 // =========================
                 user.CareerGoalId = request.CareerGoalId;
+                user.IsProfileCompleted = true;
+                user.ProfileCompletedAt ??= DateTime.UtcNow;
 
                 var identityResult = await _userManager.UpdateAsync(user);
 
@@ -240,6 +245,110 @@ namespace SmartMentor.Application.Implementations.CompleteUserProfileService
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Ok(userSkill.SkillLevel.ToString());
+        }
+
+        /// 
+        /// Gets the user's profile information, including career goal, skills, and interests.
+        /// 
+
+        public async Task<Result<UserProfileResponseDto>> GetUserProfileAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Get User + Career Goal
+                var user = await _userManager.Users
+                    .Include(u => u.CareerGoal)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User with Id {UserId} was not found.", userId);
+
+                    return Result.Fail<UserProfileResponseDto>(
+                        $"User with Id {userId} was not found.");
+                }
+
+                // Get User Skills + Skill Names
+                var userSkills = await _unitOfWork.Repository<UserSkills>()
+                    .FindAsync(
+                        us => us.UserId == userId,
+                        cancellationToken,
+                        x => x.Skill
+                    );
+
+                // Get User Interests + Interest Names
+                var userInterests = await _unitOfWork.Repository<UserInterests>()
+                    .FindAsync(
+                        ui => ui.UserId == userId,
+                        cancellationToken,
+                        x => x.Interest
+                    );
+
+                // Build Response
+                var response = new UserProfileResponseDto
+                {
+                    // Career Goal
+                    CareerGoalId = user.CareerGoalId ?? 0,
+
+                    CareerGoalName = user.CareerGoal != null
+                        ? user.CareerGoal.Name
+                        : string.Empty,
+
+                    CareerGoalMessage = user.CareerGoal == null
+                        ? "User has not selected a career goal yet."
+                        : null,
+
+                    // Skills
+                    Skills = userSkills.Select(s => new UserSkillDto
+                    {
+                        SkillId = s.SkillId,
+
+                        SkillName = s.Skill != null
+                            ? s.Skill.Name
+                            : string.Empty,
+
+                        SkillLevel = s.SkillLevel
+
+                    }).ToList(),
+
+                    SkillsMessage = !userSkills.Any()
+                        ? "User has not added any skills yet."
+                        : null,
+
+                    // Interests
+                    Interests = userInterests.Select(i => new UserInterestDto
+                    {
+                        InterestId = i.InterestId,
+
+                        InterestName = i.Interest != null
+                            ? i.Interest.Name
+                            : string.Empty
+
+                    }).ToList(),
+
+                    InterestsMessage = !userInterests.Any()
+                        ? "User has not added any interests yet."
+                        : null
+                };
+
+                _logger.LogInformation(
+                    "User profile retrieved successfully for user {UserId}",
+                    userId);
+
+                return Result.Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "An error occurred while retrieving profile for user {UserId}",
+                    userId);
+
+                return Result.Fail<UserProfileResponseDto>(
+                    "An unexpected error occurred while retrieving profile.");
+            }
         }
     }
 }

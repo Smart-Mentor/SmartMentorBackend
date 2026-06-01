@@ -11,6 +11,8 @@ namespace SmartMentor.Domain.Entiies
         public string  Name { get; set; }
         public string? Description { get; set; }
         public ICollection<CareerGoalRequiredSkill> RequiredSkills { get; set; }
+        public ICollection<CommunityPost> PrimaryCommunityPosts { get; set; } = new List<CommunityPost>();
+        public ICollection<CommunityPostCareerGoalTag> TaggedCommunityPosts { get; set; } = new List<CommunityPostCareerGoalTag>();
 
     }
 }

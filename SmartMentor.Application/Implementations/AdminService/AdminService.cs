@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using SmartMentor.Abstraction.Dto.Requests.AdminRequests;
 using SmartMentor.Abstraction.Dto.Responses.AdminResponse;
+using SmartMentor.Abstraction.Dto.Responses.UserResponse;
 using SmartMentor.Abstraction.Repositories;
 using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Domain.Entiies;
@@ -47,6 +49,97 @@ namespace SmartMentor.Application.Implementations.AdminService
                 throw new KeyNotFoundException($"User with id {userId} not found.");
             }
             return user;
+        }
+
+        public async Task<AdminUserProfileResponse> GetUserSkillsAndInterestsAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Retrieving skills and interests for user with id {UserId}.", userId);
+
+            var user = await _userManager.Users
+                .Include(u => u.CareerGoal)
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User with id {UserId} was not found while retrieving profile summary.", userId);
+                throw new KeyNotFoundException($"User with id {userId} not found.");
+            }
+
+            var userSkills = await _unitOfWork.Repository<UserSkills>()
+                .FindAsync(us => us.UserId == userId, cancellationToken, x => x.Skill);
+
+            var userInterests = await _unitOfWork.Repository<UserInterests>()
+                .FindAsync(ui => ui.UserId == userId, cancellationToken, x => x.Interest);
+
+            return BuildAdminUserProfileResponse(user, userSkills, userInterests);
+        }
+
+        public async Task<IEnumerable<AdminUserProfileResponse>> GetAllUsersProfileSummariesAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Retrieving profile summaries for all users.");
+
+            var users = await _userManager.Users
+                .Include(u => u.CareerGoal)
+                .ToListAsync(cancellationToken);
+
+            var userIds = users.Select(u => u.Id).ToList();
+
+            var allUserSkills = await _unitOfWork.Repository<UserSkills>()
+                .FindAsync(us => userIds.Contains(us.UserId), cancellationToken, x => x.Skill);
+
+            var allUserInterests = await _unitOfWork.Repository<UserInterests>()
+                .FindAsync(ui => userIds.Contains(ui.UserId), cancellationToken, x => x.Interest);
+
+            var userSkillsLookup = allUserSkills.ToLookup(us => us.UserId);
+            var userInterestsLookup = allUserInterests.ToLookup(ui => ui.UserId);
+
+            var profiles = users.Select(user => BuildAdminUserProfileResponse(
+                user,
+                userSkillsLookup[user.Id].ToList(),
+                userInterestsLookup[user.Id].ToList()));
+
+            _logger.LogInformation("Retrieved {UserCount} user profile summaries.", users.Count);
+
+            return profiles;
+        }
+
+        private static AdminUserProfileResponse BuildAdminUserProfileResponse(
+            ApplicationUser user,
+            IEnumerable<UserSkills> userSkills,
+            IEnumerable<UserInterests> userInterests)
+        {
+            var userSkillsList = userSkills.ToList();
+            var userInterestsList = userInterests.ToList();
+
+            return new AdminUserProfileResponse
+            {
+                UserId = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email ?? string.Empty,
+                CareerGoalId = user.CareerGoalId,
+                CareerGoalName = user.CareerGoal?.Name ?? string.Empty,
+                CareerGoalMessage = user.CareerGoal == null
+                    ? "User has not selected a career goal yet."
+                    : null,
+                Skills = userSkillsList.Select(s => new UserSkillDto
+                {
+                    SkillId = s.SkillId,
+                    SkillName = s.Skill?.Name ?? string.Empty,
+                    SkillLevel = s.SkillLevel
+                }).ToList(),
+                Interests = userInterestsList.Select(i => new UserInterestDto
+                {
+                    InterestId = i.InterestId,
+                    InterestName = i.Interest?.Name ?? string.Empty
+                }).ToList(),
+                SkillsMessage = !userSkillsList.Any()
+                    ? "User has not added any skills yet."
+                    : null,
+                InterestsMessage = !userInterestsList.Any()
+                    ? "User has not added any interests yet."
+                    : null
+            };
         }
 
         public async Task<bool> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default)

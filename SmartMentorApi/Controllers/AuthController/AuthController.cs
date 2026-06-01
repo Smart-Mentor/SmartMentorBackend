@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
+using smartmentor.abstraction.services.Authenticationservice;
 using SmartMentor.Abstraction.Dto.Requests.AuthRequests;
 using SmartMentor.Abstraction.Dto.Requests.AuthService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
@@ -16,11 +17,13 @@ namespace SmartMentorApi.Controllers.AuthController
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IGoogleAuthService _googleAuthService;
         private readonly ILogger<AuthController> _logger;
         private readonly IEmailVerificationService _emailVerificationService;
         private readonly IPasswordResetService _passwordResetService;
 
         public AuthController(IAuthService authService,
+        IGoogleAuthService googleAuthService,
         ILogger<AuthController> logger,
           IEmailVerificationService emailVerificationService,
           IPasswordResetService passwordResetService
@@ -28,6 +31,7 @@ namespace SmartMentorApi.Controllers.AuthController
         )
         {
             _authService = authService;
+            _googleAuthService = googleAuthService;
             _logger = logger;
            _emailVerificationService = emailVerificationService;
               _passwordResetService = passwordResetService;
@@ -46,6 +50,26 @@ namespace SmartMentorApi.Controllers.AuthController
                 return StatusCode(500, "An error occurred during login.");
             }
      
+        }
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Google login attempt received.");
+                var result = await _googleAuthService.AuthenticateWithGoogleAsync(request);
+                if (!result.IsSuccessful)
+                {
+                    return Unauthorized(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error during Google login: {Message}", ex.Message);
+                return StatusCode(500, "An error occurred during Google login.");
+            }
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)

@@ -168,6 +168,118 @@ namespace SmartMentor.Persistence.Migrations
                     b.ToTable("CareerGoalRequiredSkills", (string)null);
                 });
 
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("CommunityComments", (string)null);
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PrimaryCareerGoalId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("PrimaryCareerGoalId");
+
+                    b.ToTable("CommunityPosts", (string)null);
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPostCareerGoalTag", b =>
+                {
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CareerGoalId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PostId", "CareerGoalId");
+
+                    b.HasIndex("CareerGoalId");
+
+                    b.ToTable("CommunityPostCareerGoalTags", (string)null);
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPostReaction", b =>
+                {
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PostId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CommunityPostReactions", (string)null);
+                });
+
             modelBuilder.Entity("SmartMentor.Domain.Entiies.EmailVerificationCodes", b =>
                 {
                     b.Property<int>("Guid")
@@ -359,12 +471,18 @@ namespace SmartMentor.Persistence.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -373,6 +491,9 @@ namespace SmartMentor.Persistence.Migrations
 
                     b.Property<bool>("IsProfileCompleted")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -401,6 +522,9 @@ namespace SmartMentor.Persistence.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ProfileCompletedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -497,6 +621,82 @@ namespace SmartMentor.Persistence.Migrations
                     b.Navigation("Skill");
                 });
 
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityComment", b =>
+                {
+                    b.HasOne("SmartMentor.Persistence.Identity.ApplicationUser", "Author")
+                        .WithMany("CommunityComments")
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SmartMentor.Domain.Entiies.CommunityPost", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPost", b =>
+                {
+                    b.HasOne("SmartMentor.Persistence.Identity.ApplicationUser", "Author")
+                        .WithMany("CommunityPosts")
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SmartMentor.Domain.Entiies.CareerGoal", "PrimaryCareerGoal")
+                        .WithMany("PrimaryCommunityPosts")
+                        .HasForeignKey("PrimaryCareerGoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("PrimaryCareerGoal");
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPostCareerGoalTag", b =>
+                {
+                    b.HasOne("SmartMentor.Domain.Entiies.CareerGoal", "CareerGoal")
+                        .WithMany("TaggedCommunityPosts")
+                        .HasForeignKey("CareerGoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartMentor.Domain.Entiies.CommunityPost", "Post")
+                        .WithMany("CareerGoalTags")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CareerGoal");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPostReaction", b =>
+                {
+                    b.HasOne("SmartMentor.Domain.Entiies.CommunityPost", "Post")
+                        .WithMany("Reactions")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartMentor.Persistence.Identity.ApplicationUser", "User")
+                        .WithMany("CommunityPostReactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SmartMentor.Domain.Entiies.EmailVerificationCodes", b =>
                 {
                     b.HasOne("SmartMentor.Persistence.Identity.ApplicationUser", "User")
@@ -569,7 +769,20 @@ namespace SmartMentor.Persistence.Migrations
 
             modelBuilder.Entity("SmartMentor.Domain.Entiies.CareerGoal", b =>
                 {
+                    b.Navigation("PrimaryCommunityPosts");
+
                     b.Navigation("RequiredSkills");
+
+                    b.Navigation("TaggedCommunityPosts");
+                });
+
+            modelBuilder.Entity("SmartMentor.Domain.Entiies.CommunityPost", b =>
+                {
+                    b.Navigation("CareerGoalTags");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("SmartMentor.Domain.Entiies.Interests", b =>
@@ -586,6 +799,12 @@ namespace SmartMentor.Persistence.Migrations
 
             modelBuilder.Entity("SmartMentor.Persistence.Identity.ApplicationUser", b =>
                 {
+                    b.Navigation("CommunityComments");
+
+                    b.Navigation("CommunityPostReactions");
+
+                    b.Navigation("CommunityPosts");
+
                     b.Navigation("UserInterests");
 
                     b.Navigation("UserSkills");

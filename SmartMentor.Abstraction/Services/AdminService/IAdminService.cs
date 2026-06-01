@@ -9,6 +9,8 @@ namespace SmartMentor.Abstraction.Services.AdminService
     {
         Task<IEnumerable<ApplicationUser>> GetAllUsersAsync(CancellationToken cancellationToken = default);
         Task<ApplicationUser> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<AdminUserProfileResponse> GetUserSkillsAndInterestsAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<AdminUserProfileResponse>> GetAllUsersProfileSummariesAsync(CancellationToken cancellationToken = default);
         Task<bool> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<IEnumerable<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default);
 

@@ -154,6 +154,44 @@ namespace SmartMentorApi.Controllers.UserController
                 });
             }
         }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Invalid user token.",
+                    ErrorCode = "AUTH_002",
+                    Errors = new List<ErrorDetail>()
+                });
+            }
+
+            var result = await _userProfileService
+                .GetUserProfileAsync(userId, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User profile retrieved successfully.",
+                    Data = result.Value
+                });
+            }
+
+            return BadRequest(new ErrorResponse
+            {
+                Success = false,
+                Message = result.Errors.FirstOrDefault().Message ?? "Failed to retrieve user profile.",
+                ErrorCode = "PROFILE_002",
+                Errors = new List<ErrorDetail>()
+            });
+        }
     }
 }
 

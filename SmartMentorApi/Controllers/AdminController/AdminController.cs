@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using SmartMentor.Abstraction.Dto.Requests.AdminRequests;
 using SmartMentor.Abstraction.Repositories;
+using SmartMentor.Abstraction.Services.AdminAnalyticsService;
 using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Domain.Entiies;
 using SmartMentor.Persistence.Identity;
 using Microsoft.AspNetCore.Authorization;
+using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
 
 namespace SmartMentorApi.Controllers.AdminController
 {
@@ -15,15 +17,114 @@ namespace SmartMentorApi.Controllers.AdminController
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
+        private readonly IAdminAnalyticsService _adminAnalyticsService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(IAdminService adminService,
+         IAdminAnalyticsService adminAnalyticsService,
          IUnitOfWork unitOfWork,
          ILogger<AdminController> logger
          )
         {
             _adminService = adminService;
+            _adminAnalyticsService = adminAnalyticsService;
             _logger = logger;
+        }
+        [HttpGet("analytics/overview")]
+        public async Task<IActionResult> GetAnalyticsOverview(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var overview = await _adminAnalyticsService.GetOverviewAsync(cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "Admin analytics overview retrieved successfully.",
+                    Data = overview
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving admin analytics overview");
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving admin analytics overview.",
+                    ErrorCode = "ANALYTICS_500",
+                    Errors = new List<ErrorDetail>()
+                });
+            }
+        }
+        [HttpGet("analytics/user-growth")]
+        public async Task<IActionResult> GetUserGrowth(
+            [FromQuery] string groupBy = "day",
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var growth = await _adminAnalyticsService.GetUserGrowthAsync(groupBy, startDate, endDate, cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User growth analytics retrieved successfully.",
+                    Data = growth
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Validation failed for analytics query.",
+                    ErrorCode = "VALIDATION_003",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "analyticsQuery",
+                            Message = ex.Message
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user growth analytics");
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving user growth analytics.",
+                    ErrorCode = "ANALYTICS_500",
+                    Errors = new List<ErrorDetail>()
+                });
+            }
+        }
+        [HttpGet("analytics/onboarding-funnel")]
+        public async Task<IActionResult> GetOnboardingFunnel(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var funnel = await _adminAnalyticsService.GetOnboardingFunnelAsync(cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "Onboarding funnel analytics retrieved successfully.",
+                    Data = funnel
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving onboarding funnel analytics");
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving onboarding funnel analytics.",
+                    ErrorCode = "ANALYTICS_500",
+                    Errors = new List<ErrorDetail>()
+                });
+            }
         }
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
@@ -37,6 +138,31 @@ namespace SmartMentorApi.Controllers.AdminController
             {
                 _logger.LogError(ex, "Error retrieving users");
                 return StatusCode(500, "An error occurred while retrieving users.");
+            }
+        }
+        [HttpGet("users/profile-summaries")]
+        public async Task<IActionResult> GetAllUsersProfileSummaries(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var userProfileSummaries = await _adminService.GetAllUsersProfileSummariesAsync(cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User skills, interests, and career goal retrieved successfully.",
+                    Data = userProfileSummaries
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving user profile summaries");
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving user profile summaries.",
+                    ErrorCode = "USER_500",
+                    Errors = new List<ErrorDetail>()
+                });
             }
         }
         [HttpGet("users/{userId}")]
@@ -60,6 +186,67 @@ namespace SmartMentorApi.Controllers.AdminController
             {
                 _logger.LogError(ex, "Error retrieving user with id {UserId}", userId);
                 return StatusCode(500, "An error occurred while retrieving the user.");
+            }
+        }
+        [HttpGet("users/{userId}/profile-summary")]
+        public async Task<IActionResult> GetUserSkillsAndInterests([FromRoute] string userId, CancellationToken cancellationToken)
+        {
+            if (!Guid.TryParse(userId, out var parsedUserId))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Success = false,
+                    Message = "Validation failed. The provided user id is not a valid GUID.",
+                    ErrorCode = "VALIDATION_002",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "userId",
+                            Message = "The userId route parameter must be a valid GUID."
+                        }
+                    }
+                });
+            }
+
+            try
+            {
+                var userProfileSummary = await _adminService.GetUserSkillsAndInterestsAsync(parsedUserId, cancellationToken);
+                return Ok(new SuccessResponse
+                {
+                    Success = true,
+                    Message = "User skills, interests, and career goal retrieved successfully.",
+                    Data = userProfileSummary
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "User with id {UserId} not found", parsedUserId);
+                return NotFound(new ErrorResponse
+                {
+                    Success = false,
+                    Message = $"User with id {parsedUserId} not found.",
+                    ErrorCode = "USER_404",
+                    Errors = new List<ErrorDetail>
+                    {
+                        new ErrorDetail
+                        {
+                            Field = "userId",
+                            Message = $"No user exists with id {parsedUserId}."
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving skills and interests for user with id {UserId}", parsedUserId);
+                return StatusCode(500, new ErrorResponse
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving the user profile summary.",
+                    ErrorCode = "USER_500",
+                    Errors = new List<ErrorDetail>()
+                });
             }
         }
         [HttpDelete("users/{userId}")]

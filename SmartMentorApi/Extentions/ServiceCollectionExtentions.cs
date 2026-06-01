@@ -5,15 +5,21 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using smartmentor.abstraction.services.Authenticationservice;
+using smartmentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Abstraction.Repositories;
+using SmartMentor.Abstraction.Services.AdminAnalyticsService;
 using SmartMentor.Abstraction.Services.AdminService;
 using SmartMentor.Abstraction.Services.AuthenticationService;
+using SmartMentor.Abstraction.Services.CommunityService;
 using SmartMentor.Abstraction.Services.CompleteUserProfileService;
 using SmartMentor.Abstraction.Services.EmailSenderService;
 using SmartMentor.Abstraction.Services.GapAnalysisService;
 using SmartMentor.Application.Implementations.AdminService;
+using SmartMentor.Application.Implementations.AdminAnalyticsService;
 using SmartMentor.Application.Implementations.AuthenticationService;
 using SmartMentor.Application.Implementations.AuthenticationService.EmailVerficationService;
+using SmartMentor.Application.Implementations.CommunityService;
 using SmartMentor.Application.Implementations.CompleteUserProfileService;
 using SmartMentor.Application.Implementations.EmailSenderService;
 using SmartMentor.Application.Implementations.GapAnalysisService;
@@ -31,15 +37,18 @@ namespace SmartMentorApi.Extentions
         {
             // Register application services here
             services.AddScoped<IAuthService , AuthService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IGapAnalysisService, GapAnalysisService>();
+            services.AddScoped<ICommunityService, CommunityService>();
             services.AddScoped<IEmailSenderService, SmtpEmailSender>();
             services.AddScoped<IEmailVerificationService, EmailVerficationService>();
             services.AddScoped<IPasswordResetService, ResetPasswordService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAdminAnalyticsService, AdminAnalyticsService>();
             return services;
         }
         public static IServiceCollection AddOpenApidocumentation(this IServiceCollection services)
