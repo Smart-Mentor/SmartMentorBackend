@@ -132,7 +132,8 @@ namespace smartmentor.Application.Implementations.AuthenticationService
                     user.Email,
                     role,
                     true,
-                    "Authentication successful."
+                    "Authentication successful.",
+                    user.EmailConfirmed
                 )
             );
         }

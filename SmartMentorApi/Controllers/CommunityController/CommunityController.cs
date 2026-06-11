@@ -1,16 +1,16 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartMentor.Abstraction.Dto.Requests.CommunityRequests;
 using SmartMentor.Abstraction.Dto.SharedRequestsAndResponses;
 using SmartMentor.Abstraction.Services.CommunityService;
+using SmartMentorApi.Utilities;
 
 namespace SmartMentorApi.Controllers.CommunityController
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class CommunityController : ControllerBase
+    public class CommunityController : SharedMethods
     {
         private readonly ICommunityService _communityService;
         private readonly ILogger<CommunityController> _logger;
@@ -82,6 +82,7 @@ namespace SmartMentorApi.Controllers.CommunityController
         }
 
         [HttpPost("posts")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> CreatePost([FromBody] CreateCommunityPostRequest request, CancellationToken cancellationToken)
         {
             if (!TryGetCurrentUserId(out var currentUserId))
@@ -123,6 +124,7 @@ namespace SmartMentorApi.Controllers.CommunityController
         }
 
         [HttpPost("posts/{postId}/comments")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> AddComment(int postId, [FromBody] CreateCommunityCommentRequest request, CancellationToken cancellationToken)
         {
             if (!TryGetCurrentUserId(out var currentUserId))
@@ -158,6 +160,7 @@ namespace SmartMentorApi.Controllers.CommunityController
         }
 
         [HttpPost("posts/{postId}/like")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> LikePost(int postId, CancellationToken cancellationToken)
         {
             if (!TryGetCurrentUserId(out var currentUserId))
@@ -187,6 +190,7 @@ namespace SmartMentorApi.Controllers.CommunityController
         }
 
         [HttpDelete("posts/{postId}/like")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> RemoveLike(int postId, CancellationToken cancellationToken)
         {
             if (!TryGetCurrentUserId(out var currentUserId))
@@ -214,71 +218,40 @@ namespace SmartMentorApi.Controllers.CommunityController
                 return StatusCode(500, BuildServerErrorResponse("An error occurred while removing the post like."));
             }
         }
-
-        private bool TryGetCurrentUserId(out Guid userId)
+        [HttpDelete("posts/{postId}")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
+        public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.TryParse(userIdClaim, out userId);
-        }
-
-        private ErrorResponse BuildUnauthorizedResponse()
-        {
-            return new ErrorResponse
+            if (!TryGetCurrentUserId(out var currentUserId))
             {
-                Success = false,
-                Message = "Authentication failed. User ID not found in token.",
-                ErrorCode = "AUTH_001",
-                Errors = new List<ErrorDetail>()
-            };
-        }
+                return Unauthorized(BuildUnauthorizedResponse());
+            }
 
-        private ErrorResponse BuildValidationResponse()
-        {
-            var validationErrors = ModelState
-                .Where(x => x.Value?.Errors.Count > 0)
-                .SelectMany(x => x.Value!.Errors.Select(e => new ErrorDetail
+            try
+            {
+                await _communityService.DeletePostAsync(currentUserId, postId, cancellationToken);
+                return Ok(new SuccessResponse
                 {
-                    Field = x.Key,
-                    Message = e.ErrorMessage
-                }))
-                .ToList();
-
-            return new ErrorResponse
+                    Success = true,
+                    Message = "Post deleted successfully."
+                });
+            }
+            catch (KeyNotFoundException ex)
             {
-                Success = false,
-                Message = "Validation failed. Please check the provided data and try again.",
-                ErrorCode = "VALIDATION_001",
-                Errors = validationErrors
-            };
+                _logger.LogWarning(ex, "Delete failed because post {PostId} was not found", postId);
+                return NotFound(BuildNotFoundResponse("postId", $"Post with id {postId} not found.", "COMMUNITY_404"));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Delete failed because user {UserId} is not authorized to delete post {PostId}", currentUserId, postId);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting post {PostId}", postId);
+                return StatusCode(500, BuildServerErrorResponse("An error occurred while deleting the post."));
+            }
         }
 
-        private ErrorResponse BuildNotFoundResponse(string field, string message, string errorCode)
-        {
-            return new ErrorResponse
-            {
-                Success = false,
-                Message = message,
-                ErrorCode = errorCode,
-                Errors = new List<ErrorDetail>
-                {
-                    new ErrorDetail
-                    {
-                        Field = field,
-                        Message = message
-                    }
-                }
-            };
-        }
-
-        private ErrorResponse BuildServerErrorResponse(string message)
-        {
-            return new ErrorResponse
-            {
-                Success = false,
-                Message = message,
-                ErrorCode = "COMMUNITY_500",
-                Errors = new List<ErrorDetail>()
-            };
-        }
     }
 }

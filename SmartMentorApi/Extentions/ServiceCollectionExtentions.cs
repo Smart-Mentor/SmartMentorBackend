@@ -212,9 +212,26 @@ namespace SmartMentorApi.Extentions
                         };
                     }
 
+                    options.Events ??= new JwtBearerEvents();
+                    options.Events.OnForbidden = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return context.Response.WriteAsJsonAsync(new
+                        {
+                            Success = false,
+                            Message = "Please verify your email before using this feature.",
+                            ErrorCode = "EMAIL_VERIFICATION_REQUIRED"
+                        });
+                    };
+
    
                 });
-                
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("VerifiedEmailRequired", policy =>
+                    policy.RequireClaim("email_verified", "true"));
+            });
                 
             return services;
         }

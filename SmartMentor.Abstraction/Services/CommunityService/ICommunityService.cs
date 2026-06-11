@@ -11,5 +11,6 @@ namespace SmartMentor.Abstraction.Services.CommunityService
         Task<CommunityCommentResponse> AddCommentAsync(Guid userId, int postId, CreateCommunityCommentRequest request, CancellationToken cancellationToken = default);
         Task AddLikeAsync(Guid userId, int postId, CancellationToken cancellationToken = default);
         Task RemoveLikeAsync(Guid userId, int postId, CancellationToken cancellationToken = default);
+        Task DeletePostAsync(Guid userId, int postId, CancellationToken cancellationToken = default);
     }
 }

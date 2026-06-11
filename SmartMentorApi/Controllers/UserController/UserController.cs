@@ -20,6 +20,7 @@ namespace SmartMentorApi.Controllers.UserController
         }
 
         [HttpPost("complete-profile")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> CompleteProfile([FromBody] CompleteUserProfileRequest request, CancellationToken cancellationToken)
         {
             // Validate user authentication
@@ -99,6 +100,7 @@ namespace SmartMentorApi.Controllers.UserController
         }
 
         [HttpPut("update-profile")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> UpdateProfile([FromBody] CompleteUserProfileRequest request, CancellationToken cancellationToken)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -115,6 +117,7 @@ namespace SmartMentorApi.Controllers.UserController
             return BadRequest(result.Errors.Select(e => e.Message));
         }
         [HttpPatch("update-skill-level/{skillId}")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<IActionResult> UpdateSkillLevel(int skillId,CancellationToken cancellationToken)
         {
             var userId=HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

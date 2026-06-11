@@ -20,6 +20,16 @@ namespace SmartMentorApi
             
             services.AddOpenApidocumentation();
             services.AddControllers();
+            var applicationInsightsConnectionString = configuration["ApplicationInsights:ConnectionString"]
+                ?? configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+
+            if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+            {
+                services.AddApplicationInsightsTelemetry(options =>
+                {
+                    options.ConnectionString = applicationInsightsConnectionString;
+                });
+            }
             // services.AddAuthorization();
             // services.AddHttpContextAccessor();
             services.AddDatabase(configuration.GetConnectionString("DefaultConnection")

@@ -11,6 +11,7 @@ namespace SmartMentor.Abstraction.Dto.Responses.AuthResponse
         string Email,
         string Role,
         bool IsSuccessful,
-        string Message
+        string Message,
+        bool EmailConfirmed = false
     );
 }

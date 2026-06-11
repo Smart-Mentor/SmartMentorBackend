@@ -167,11 +167,11 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     _logger.LogDebug("There is no account with that email");
                     return new AuthResponse(IsSuccessful: false, Message: "Invalid email or password");
                 }
-                if (user.EmailConfirmed == false)
-                {
-                    _logger.LogWarning("Login failed - email not confirmed for user: {UserId}", user.Id);
-                    return new AuthResponse(IsSuccessful: false, Message: "Email not confirmed. Please verify your email before logging in.");
-                }
+                // if (user.EmailConfirmed == false)
+                // {
+                //     _logger.LogWarning("Login failed - email not confirmed for user: {UserId}", user.Id);
+                //     return new AuthResponse(IsSuccessful: false, Message: "Email not confirmed. Please verify your email before logging in.");
+                // }
 
                 var res = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
                 if (!res.Succeeded)
@@ -182,9 +182,15 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 user.LastLoginAt = DateTime.UtcNow;
                 await _userManger.UpdateAsync(user);
                 var token = await _jwtToken.GenerateTokenAsync(user);
+                Guid? verificationToken = null;
+                if (!user.EmailConfirmed)
+                {
+                    verificationToken = await _emailVerificationService.GetOrCreateActiveVerificationTokenAsync(user.Id);
+                }
 
                 return new AuthResponse(IsSuccessful: true,
                 Message: "Login successful",
+                VerificationToken: verificationToken,
                  Token: token,
                  User: new UserResponse(
                     UserId: user.Id,
@@ -193,7 +199,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     Email: user.Email,
                     Role: (await _userManger.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty,
                     IsSuccessful: true,
-                    Message: "User retrieved successfully"
+                    Message: "User retrieved successfully",
+                    EmailConfirmed: user.EmailConfirmed
                  ));
             }
             catch (Exception ex)
@@ -259,7 +266,8 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                     Email: newUser.Email,
                     Role: DefaultRole,
                     IsSuccessful: true,
-                     Message: "User registered successfully, verification code sent to email"
+                     Message: "User registered successfully, verification code sent to email",
+                     EmailConfirmed: newUser.EmailConfirmed
                     )
             );
             }
