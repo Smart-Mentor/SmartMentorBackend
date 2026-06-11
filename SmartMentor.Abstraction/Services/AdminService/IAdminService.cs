@@ -32,5 +32,7 @@ namespace SmartMentor.Abstraction.Services.AdminService
         Task<MasterDataResponse> GetMasterDataAsync(CancellationToken cancellationToken = default);
 
         Task <bool>AssignSkillToCareerGoalAsync(AssignSkillToCareerGoalRequest request, CancellationToken cancellationToken = default);
+        Task <bool>RemoveSkillFromCareerGoalAsync(int careerGoalId, int skillId, CancellationToken cancellationToken = default);
+        Task <bool> DeleteCareerGoalAsync(int careerGoalId, CancellationToken cancellationToken = default);
     }
 }
