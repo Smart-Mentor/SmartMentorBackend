@@ -535,5 +535,27 @@ namespace SmartMentor.Application.Implementations.AdminService
                 throw new Exception("An error occurred while creating a career goal.");
             }
         }
+        public async Task<bool> DeleteCareerGoalAsync(int careerGoalId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var careerGoal = await _unitOfWork.Repository<CareerGoal>().GetByIdAsync(new object[] { careerGoalId }, cancellationToken);
+                if (careerGoal == null)
+                {
+                    _logger.LogWarning("Career goal with id {CareerGoalId} was not found for deletion.", careerGoalId);
+                    throw new KeyNotFoundException($"Career goal with id {careerGoalId} not found.");
+                }
+
+                _unitOfWork.Repository<CareerGoal>().Delete(careerGoal);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting career goal with id {CareerGoalId}.", careerGoalId);
+                throw new Exception("An error occurred while deleting the career goal.");
+            }
+        }
     }
 }
