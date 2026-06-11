@@ -25,6 +25,7 @@ namespace SmartMentorApi.Controllers.GapAnalysisController
             _gapAnalysisService = gapAnalysisService;
         }
         [HttpGet("gap-analysis")]
+        [Authorize(Policy = "VerifiedEmailRequired")]
         public async Task<ActionResult<GapAnalysisResponse>> Analysis(CancellationToken cancellationToken)
         {
             var userid=HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

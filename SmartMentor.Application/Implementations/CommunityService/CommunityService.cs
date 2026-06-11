@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using SmartMentor.Abstraction.Dto.Requests.CommunityRequests;
 using SmartMentor.Abstraction.Dto.Responses.CommunityResponses;
 using SmartMentor.Abstraction.Repositories;
@@ -12,11 +13,16 @@ namespace SmartMentor.Application.Implementations.CommunityService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<CommunityService> _logger;
 
-        public CommunityService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public CommunityService(IUnitOfWork unitOfWork, 
+        UserManager<ApplicationUser> userManager,
+        ILogger<CommunityService> logger
+        )
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<IReadOnlyList<CommunityPostSummaryResponse>> GetPostsByCareerGoalAsync(int careerGoalId, Guid currentUserId, CancellationToken cancellationToken = default)
@@ -302,5 +308,36 @@ namespace SmartMentor.Application.Implementations.CommunityService
                 CareerGoalName = careerGoal.Name
             };
         }
+
+        public async Task DeletePostAsync(Guid userId, int postId, CancellationToken cancellationToken = default)
+        {
+           var ISPostExists = await _unitOfWork.Repository<CommunityPost>()
+                .AnyAsync(p => p.Id == postId && !p.IsDeleted, cancellationToken);
+
+            if (!ISPostExists)
+            {
+                _logger.LogWarning("Attempt to delete non-existent post with id {PostId}", postId);
+                throw new KeyNotFoundException($"Post with id {postId} not found.");
+            }
+
+            var post = await _unitOfWork.Repository<CommunityPost>()
+                .FindAsync(p => p.Id == postId && !p.IsDeleted, cancellationToken);
+
+            var postAuthorId = post.FirstOrDefault();
+            if (post == null || postAuthorId == null)
+            {
+                _logger.LogWarning("Attempt to delete non-existent post with id {PostId}", postId);
+                throw new KeyNotFoundException($"Post with id {postId} not found.");
+            }
+            if(postAuthorId.AuthorUserId != userId)
+            {
+                _logger.LogWarning("User {UserId} attempted to delete post {PostId} they do not own", userId, postId);
+                throw new UnauthorizedAccessException("You do not have permission to delete this post.");
+            }
+            postAuthorId.IsDeleted = true;
+            _unitOfWork.Repository<CommunityPost>().Update(postAuthorId);
+            await _unitOfWork.SaveChangesAsync(cancellationToken); 
+        }
+
     }
 }

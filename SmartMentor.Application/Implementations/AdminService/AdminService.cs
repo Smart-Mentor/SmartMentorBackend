@@ -516,7 +516,7 @@ namespace SmartMentor.Application.Implementations.AdminService
             }
         }
 
-        public Task CreateCareerGoalAsync(AddCareerGoalRequest request, CancellationToken cancellationToken = default)
+        public async Task CreateCareerGoalAsync(AddCareerGoalRequest request, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -526,9 +526,8 @@ namespace SmartMentor.Application.Implementations.AdminService
                     Description = request.Description
                 };
 
-                _unitOfWork.Repository<CareerGoal>().AddAsync(careerGoal, cancellationToken);
-                _unitOfWork.SaveChangesAsync(cancellationToken);
-                return Task.CompletedTask;
+                await _unitOfWork.Repository<CareerGoal>().AddAsync(careerGoal, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);      
             }
             catch (Exception ex)
             {

@@ -51,6 +51,7 @@ namespace SmartMentor.Application.Implementations.AuthenticationService
                 // new Claim(JwtRegisteredClaimNames.Sub, user.FirstName+" "+ user.LastName),
                 // Single NameIdentifier with USER ID
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim("email_verified", user.EmailConfirmed.ToString().ToLowerInvariant()),
                 
 
             };

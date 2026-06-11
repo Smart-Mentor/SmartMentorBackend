@@ -1,6 +1,118 @@
-@SmartMentorApi_HostAddress = http://localhost:5051
+@baseUrl = https://localhost:7000
+@email = unverified-user{{$timestamp}}@example.com
+@password = Pass1234
+@firstName = Test
+@lastName = User
+@phoneNumber = 01000000000
 
-GET {{SmartMentorApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Register a new unverified user
+# @name registerUser
+POST {{baseUrl}}/api/Auth/register
+Content-Type: application/json
 
-###
+{
+  "firstName": "{{firstName}}",
+  "lastName": "{{lastName}}",
+  "email": "{{email}}",
+  "phoneNumber": "{{phoneNumber}}",
+  "password": "{{password}}",
+  "confirmPassword": "{{password}}"
+}
+
+### 2. Login before email verification
+# Expected: isSuccessful=true, token is not null, verificationToken is not null, user.emailConfirmed=false.
+# @name loginUnverified
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 3. Get current auth profile while unverified
+# Expected: allowed because the user is authenticated.
+GET {{baseUrl}}/api/Auth/me
+Authorization: Bearer {{loginUnverified.response.body.$.token}}
+
+### 4. Get user profile while unverified
+# Expected: allowed; this endpoint is intentionally readable before verification.
+GET {{baseUrl}}/api/User/profile
+Authorization: Bearer {{loginUnverified.response.body.$.token}}
+
+### 5. Try a blocked write feature while unverified
+# Expected: 403 with EMAIL_VERIFICATION_REQUIRED.
+POST {{baseUrl}}/api/User/complete-profile
+Authorization: Bearer {{loginUnverified.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "skills": [
+    {
+      "skillId": 1,
+      "skillLevel": 1
+    }
+  ],
+  "interestIds": [1],
+  "careerGoalId": 1
+}
+
+### 6. Try another blocked product feature while unverified
+# Expected: 403 with EMAIL_VERIFICATION_REQUIRED.
+GET {{baseUrl}}/api/GapAnalysis/gap-analysis
+Authorization: Bearer {{loginUnverified.response.body.$.token}}
+
+### 7. Verify email
+# Replace code with the code sent by email. The verificationToken comes from login/register.
+POST {{baseUrl}}/api/Auth/verify-email
+Content-Type: application/json
+
+{
+  "verificationToken": "{{loginUnverified.response.body.$.verificationToken}}",
+  "code": "123456"
+}
+
+### 8. Resend verification code
+# Use this if the code expired or you need a fresh email code.
+POST {{baseUrl}}/api/Auth/resend-verification-code/{{loginUnverified.response.body.$.verificationToken}}
+
+### 9. Login after email verification
+# Expected: isSuccessful=true, verificationToken=null, user.emailConfirmed=true.
+# @name loginVerified
+POST {{baseUrl}}/api/Auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 10. Complete profile after email verification
+# Expected: allowed after verification. Adjust ids to values that exist in your seeded database.
+POST {{baseUrl}}/api/User/complete-profile
+Authorization: Bearer {{loginVerified.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "skills": [
+    {
+      "skillId": 1,
+      "skillLevel": 1
+    }
+  ],
+  "interestIds": [1],
+  "careerGoalId": 1
+}
+
+### 11. Create community post after email verification
+# Expected: allowed after verification. Adjust career goal ids if needed.
+POST {{baseUrl}}/api/Community/posts
+Authorization: Bearer {{loginVerified.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Testing verified community access",
+  "content": "This post should only be created after the account email is verified.",
+  "primaryCareerGoalId": 1,
+  "careerGoalTagIds": [1]
+}
