@@ -561,6 +561,51 @@ namespace SmartMentorApi.Controllers.AdminController
                 return StatusCode(500, "An error occurred while assigning skill to career goal.");
             }
         }
-
+        [HttpDelete("career-goals/{careerGoalId}/skills/{skillId}")]
+        public async Task<IActionResult> RemoveSkillFromCareerGoal(int careerGoalId, int skillId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _adminService.RemoveSkillFromCareerGoalAsync(careerGoalId, skillId, cancellationToken);
+                if (result)
+                {
+                    return Ok("Skill removed from career goal successfully.");
+                }
+                return BadRequest("Failed to remove skill from career goal. Please check if the career goal and skill exist.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Career goal with id {CareerGoalId} or skill with id {SkillId} not found", careerGoalId, skillId);
+                return NotFound($"Career goal with id {careerGoalId} or skill with id {skillId} not found.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing skill with id {SkillId} from career goal with id {CareerGoalId}", skillId, careerGoalId);
+                return StatusCode(500, "An error occurred while removing skill from career goal.");
+            }
+        }
+        [HttpDelete("career-goals/{careerGoalId}")]
+        public async Task<IActionResult> DeleteCareerGoal(int careerGoalId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _adminService.DeleteCareerGoalAsync(careerGoalId, cancellationToken);
+                if (result)
+                {
+                    return Ok("Career goal deleted successfully.");
+                }
+                return BadRequest("Failed to delete career goal. Please check if the career goal exists.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Career goal with id {CareerGoalId} not found", careerGoalId);
+                return NotFound($"Career goal with id {careerGoalId} not found.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting career goal with id {CareerGoalId}", careerGoalId);
+                return StatusCode(500, "An error occurred while deleting the career goal.");
+            }
+        }
     }
 }
